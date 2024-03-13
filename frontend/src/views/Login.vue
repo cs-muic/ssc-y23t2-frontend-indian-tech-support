@@ -1,88 +1,54 @@
 <template>
   <v-container>
-    <template>
-      <v-sheet class="mx-auto" width="300">
-        <v-form ref="form">
-          <v-text-field
-            v-model="name"
-            :counter="10"
-            :rules="nameRules"
-            label="Name"
-            required
-          ></v-text-field>
+    <v-form ref="form">
+      <v-text-field
+        v-model="username"
+        :rules="usernameRules"
+        label="Username"
+        required
+      ></v-text-field>
 
-          <!--          TODO: figure out how to replicate ajarn's form as shown in the video-->
-          <!--          <v-text-field-->
-          <!--            v-model="state.email"-->
-          <!--            :error-messages="v$.email.$errors.map((e) => e.$message)"-->
-          <!--            label="E-mail"-->
-          <!--            required-->
-          <!--            @blur="v$.email.$touch"-->
-          <!--            @input="v$.email.$touch"-->
-          <!--          ></v-text-field>-->
+      <v-text-field
+        v-model="password"
+        :rules="passwordRules"
+        label="Password"
+        type="password"
+        required
+      ></v-text-field>
 
-          <v-select
-            v-model="select"
-            :items="items"
-            :rules="[(v) => !!v || 'Item is required']"
-            label="Item"
-            required
-          ></v-select>
+      <v-btn color="success" class="mr-4" @click="validate"> Login</v-btn>
 
-          <v-checkbox
-            v-model="checkbox"
-            :rules="[(v) => !!v || 'You must agree to continue!']"
-            label="Do you agree?"
-            required
-          ></v-checkbox>
-
-          <div class="d-flex flex-column">
-            <v-btn class="mt-4" color="success" block @click="validate">
-              Validate
-            </v-btn>
-
-            <v-btn class="mt-4" color="error" block @click="reset">
-              Reset Form
-            </v-btn>
-
-            <v-btn class="mt-4" color="warning" block @click="resetValidation">
-              Reset Validation
-            </v-btn>
-          </div>
-        </v-form>
-      </v-sheet>
-    </template>
+      <v-btn color="error" class="mr-4" @click="reset"> Reset</v-btn>
+    </v-form>
   </v-container>
 </template>
 
 <script>
+import Vue from "vue";
+
 export default {
   data: () => ({
-    valid: true,
-    name: "",
-    nameRules: [
-      (v) => !!v || "Name is required",
-      (v) => (v && v.length <= 10) || "Name must be less than 10 characters",
-    ],
-    email: "",
-    emailRules: [
-      (v) => !!v || "E-mail must be valid",
-      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
-    ],
-    select: null,
-    items: ["Item 1", "Item 2", "Item 3", "Item 4"],
-    checkbox: false,
+    username: "",
+    usernameRules: [(v) => !!v || "Username is required"],
+    password: "",
+    passwordRules: [(v) => !!v || "Password is required"],
   }),
 
   methods: {
-    validate() {
-      this.$ref.form.validate();
+    async validate() {
+      if (this.$refs.form.validate()) {
+        let formData = new FormData();
+        formData.append("username", this.username);
+        formData.append("password", this.password);
+        let response = await Vue.axios.post("/api/login", formData);
+        if (response.data.success) {
+          this.$router.push({ path: "/" });
+        }
+      }
     },
     reset() {
-      this.$ref.form.reset();
-    },
-    resetValidation() {
-      this.$ref.form.resetValidation();
+      this.username = "";
+      this.password = "";
     },
   },
 };
