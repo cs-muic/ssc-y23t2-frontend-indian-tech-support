@@ -11,9 +11,10 @@ export default new Vuex.Store({
     role: "",
   },
   getters: {},
-  mutations: {
+  mutations: {},
+  actions: {
     setLoggedInUser(state, payload) {
-      state.isLoggedIn = true;
+      state.isLoggedIn = payload.loggedIn;
       state.username = payload.username;
       state.display_name = payload.display_name;
       state.role = payload.role;
@@ -25,6 +26,5 @@ export default new Vuex.Store({
       state.role = "";
     },
   },
-  actions: {},
   modules: {},
 });
