@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import HomeView from "../views/HomeView.vue";
+// import store from "@/store";
 
 Vue.use(VueRouter);
 
@@ -32,6 +33,18 @@ const routes = [
 
 const router = new VueRouter({
   routes,
+});
+
+// Setup beforeEach
+router.beforeEach(async (to, from, next) => {
+  // get login state using whoami and axios
+  let response = await Vue.axios.get("/api/whoami");
+  console.log(response);
+  if (to.name !== "login") {
+    next({ name: "login" });
+  } else {
+    next();
+  }
 });
 
 export default router;
