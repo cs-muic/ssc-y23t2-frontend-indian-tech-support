@@ -7,15 +7,25 @@
       <router-link to="/" class="nav-link">Analytics</router-link>
     </div>
     <div class="nav-actions">
-      <a href="#" class="nav-action">Logout</a>
+      <button class="nav-action" @click="logout">Logout</button>
+      <!-- Changed to button -->
     </div>
   </nav>
 </template>
 
 <script>
+import Vue from "vue";
+
 export default {
   name: "NavbarComponent",
-  // Any JavaScript or component-specific logic goes here
+  methods: {
+    async logout() {
+      let response = await Vue.axios.get("/api/logout");
+      if (response.data.success) {
+        this.$router.push({ path: "/login" });
+      }
+    },
+  },
 };
 </script>
 
