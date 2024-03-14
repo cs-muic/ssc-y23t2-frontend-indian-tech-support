@@ -11,6 +11,9 @@
       <li>
         <router-link to="/login">Go to Login</router-link>
       </li>
+      <li>
+        <router-link to="/history">Go to History</router-link>
+      </li>
     </ul>
   </v-container>
 </template>
