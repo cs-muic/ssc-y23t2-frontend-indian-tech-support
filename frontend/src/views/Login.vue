@@ -1,12 +1,12 @@
 <template>
-  <v-container>
-    <v-row justify="center" align="center" class="fill-height">
+  <v-container fluid fill-height class="d-flex justify-center align-center">
+    <v-row justify="center">
       <v-col cols="12" sm="8" md="4">
         <!-- Flip card container -->
         <transition name="flip" mode="out-in">
           <div :key="flipKey">
             <!-- Login Form -->
-            <v-form v-if="!showSignup" ref="form" class="pt-6">
+            <v-form v-if="!showSignup" ref="form" class="py-5">
               <v-text-field
                 v-model="username"
                 :rules="usernameRules"
@@ -27,7 +27,13 @@
               <v-btn text @click="toggleForm">Sign Up</v-btn>
             </v-form>
             <!-- Signup Form -->
-            <v-form v-else ref="signupForm" class="pt-6">
+            <v-form v-else ref="signupForm" class="py-5">
+              <v-text-field
+                v-model="newName"
+                :rules="[(v) => !!v || 'Display name is required']"
+                label="Display Name"
+                required
+              ></v-text-field>
               <v-text-field
                 v-model="newUsername"
                 :rules="usernameRules"
@@ -44,6 +50,13 @@
                 v-model="newPassword"
                 :rules="passwordRules"
                 label="Password"
+                type="password"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="confirmPassword"
+                :rules="[(v) => v === newPassword || 'Passwords must match']"
+                label="Confirm Password"
                 type="password"
                 required
               ></v-text-field>
@@ -70,13 +83,15 @@ export default {
     showSignup: false,
     flipKey: 0,
     username: "",
+    newName: "",
     newUsername: "",
     newEmail: "",
     newPassword: "",
+    confirmPassword: "",
     usernameRules: [(v) => !!v || "Username is required"],
     emailRules: [
       (v) => !!v || "E-mail is required",
-      (v) => /.+@.+/.test(v) || "E-mail must be valid",
+      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
     ],
     passwordRules: [(v) => !!v || "Password is required"],
   }),
@@ -86,6 +101,7 @@ export default {
         let formData = new FormData();
         formData.append("username", this.username);
         formData.append("password", this.password);
+        // Assume an endpoint "/api/login" for login
         let response = await Vue.axios.post("/api/login", formData);
         if (response.data.success) {
           this.$router.push({ path: "/" });
@@ -98,8 +114,10 @@ export default {
         formData.append("username", this.newUsername);
         formData.append("email", this.newEmail);
         formData.append("password", this.newPassword);
+        formData.append("display_name", this.newName);
+        // Assume an endpoint "/api/signup" for signup
         // let response = await Vue.axios.post("/api/signup", formData);
-        // Handle signup response here (e.g., show a success message, redirect, etc.)
+        // Handle the signup response here
       }
     },
     reset() {
@@ -107,9 +125,11 @@ export default {
       this.password = "";
     },
     resetSignupForm() {
+      this.newName = "";
       this.newUsername = "";
       this.newEmail = "";
       this.newPassword = "";
+      this.confirmPassword = "";
     },
     toggleForm() {
       this.showSignup = !this.showSignup;
@@ -126,7 +146,9 @@ export default {
 .flip-leave-active {
   transition: transform 0.5s;
 }
-.flip-enter, .flip-leave-to /* .flip-leave-active in <2.1.8 */ {
+
+.flip-enter,
+.flip-leave-to {
   transform: rotateY(180deg);
 }
 </style>
