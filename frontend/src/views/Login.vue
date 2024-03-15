@@ -1,10 +1,14 @@
 <template>
-  <v-container fluid fill-height class="d-flex justify-center align-center">
+  <v-container
+    fluid
+    fill-height
+    class="d-flex justify-center align-center bg-logo-test"
+  >
     <v-row justify="center">
       <v-col cols="12" sm="8" md="4">
         <!-- Flip card container -->
         <transition name="flip" mode="out-in">
-          <div :key="flipKey">
+          <div :key="flipKey" class="form-container">
             <!-- Login Form -->
             <v-form v-if="!showSignup" ref="form" class="py-5">
               <v-text-field
@@ -12,6 +16,8 @@
                 :rules="usernameRules"
                 label="Username"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-text-field
                 v-model="password"
@@ -19,6 +25,8 @@
                 label="Password"
                 type="password"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-btn color="success" class="mr-4" @click="validate"
                 >Login</v-btn
@@ -33,18 +41,24 @@
                 :rules="[(v) => !!v || 'Display name is required']"
                 label="Display Name"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-text-field
                 v-model="newUsername"
                 :rules="usernameRules"
                 label="Username"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-text-field
                 v-model="newEmail"
                 :rules="emailRules"
                 label="Email"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-text-field
                 v-model="newPassword"
@@ -52,6 +66,8 @@
                 label="Password"
                 type="password"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-text-field
                 v-model="confirmPassword"
@@ -59,6 +75,8 @@
                 label="Confirm Password"
                 type="password"
                 required
+                dark
+                class="text-white"
               ></v-text-field>
               <v-btn color="primary" class="mr-4" @click="signup"
                 >Sign Up</v-btn
@@ -138,6 +156,13 @@ export default {
       this.resetSignupForm();
     },
   },
+  theme: {
+    extend: {
+      backgroundImage: {
+        "logo-test": "url('/src/assets/TestBG.webp')",
+      },
+    },
+  },
 };
 </script>
 
@@ -150,5 +175,36 @@ export default {
 .flip-enter,
 .flip-leave-to {
   transform: rotateY(180deg);
+}
+.bg-logo-test {
+  background-image: url("../assets/TestBG.webp");
+  background-size: cover; /* Cover the entire container */
+  background-position: center; /* Center the background image */
+}
+.form-container {
+  background-color: rgba(
+    245,
+    245,
+    245,
+    0.6
+  ); /* Adjust opacity for transparency */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: white; /* Ensure fallback text color is white */
+}
+/* For labels, placeholders, and input text, since they might not inherit white color correctly */
+.v-label,
+.v-input__slot {
+  color: white !important;
+}
+
+.v-text-field__slot input,
+.v-text-field__slot textarea {
+  color: white !important;
+}
+
+.v-btn:not(.v-btn--dark) {
+  color: white !important;
 }
 </style>
