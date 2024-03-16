@@ -66,7 +66,7 @@
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="type">Type</label>
-          <select v-model="form.type" class="form-control">
+          <select v-model="form.type" class="form-control" required>
             <option disabled value="">Select Type</option>
             <option value="INCOME">Income</option>
             <option value="EXPENDITURE">Expenditure</option>
@@ -80,7 +80,24 @@
             v-model="form.value"
             placeholder="e.g., 100.00"
             class="form-control"
+            @blur="validateDecimal"
+            required
           />
+        </div>
+
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input
+            type="date"
+            v-model="form.date"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="time">Time</label>
+          <input type="time" v-model="form.time" class="form-control" />
         </div>
 
         <div class="form-group">
@@ -90,16 +107,6 @@
             placeholder="Any relevant details"
             class="form-control"
           ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="date">Date</label>
-          <input type="date" v-model="form.date" class="form-control" />
-        </div>
-
-        <div class="form-group">
-          <label for="time">Time</label>
-          <input type="time" v-model="form.time" class="form-control" />
         </div>
 
         <div class="form-group">
@@ -152,6 +159,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "IncomeExpenseCreationView",
   components: {
@@ -171,24 +180,24 @@ export default {
         recurring: false,
         shortcut: false,
       },
-      recurringData: [
-        {
-          id: 1,
-          name: "Rent",
-          type: "EXPENDITURE",
-          amount: "1500",
-          tag: "Housing",
-          tag2: "",
-          notes: "Monthly rent",
-          timestamp: "2024-05-01 12:00",
-        },
-      ],
     };
   },
   methods: {
-    handleSubmit() {
+    validateDecimal() {
+      // This regex allows up to 5 decimal places.
+      const regex = /^\d+(\.\d{1,5})?$/;
+      if (!regex.test(this.form.value)) {
+        alert(
+          "Please enter a valid decimal number with up to 5 decimal places."
+        );
+        // Optionally, reset the value or take other corrective action
+        // this.form.value = "";
+      }
+    },
+    // Define your methods within this methods object
+    async handleSubmit() {
       // Combine date and time into timestamp
-      const timestamp = `${this.form.date}T${this.form.time}`;
+      const timestamp = `${this.form.date}T${this.form.time}:00.000`;
 
       // Prepare data for logging or further processing
       const formData = {
@@ -196,13 +205,31 @@ export default {
         timestamp, // Use the combined timestamp
       };
 
-      // Omit the separate date and time for the log, if you want to keep them in the form data for some reason, remove the next two lines
+      // Adjustments for omitting separate date, time, tag, and tag2
       delete formData.date;
       delete formData.time;
 
       console.log("Form submitted with the following data:", formData);
 
-      // Here you would typically handle the form submission, like sending the data to a backend server
+      // eslint-disable-next-line no-unused-vars
+      const response = axios({
+        method: "post",
+        url: "/api/createTransactions",
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+        .then(() => {
+          // Success handling
+          // Assuming this.$router is correctly scoped, this navigates to the "/history" route.
+          this.$router.push("/history");
+        })
+        .catch((error) => {
+          // Error handling
+          console.error("Submission error:", error);
+          // Display your error banner here
+          // This could be a simple alert or a more sophisticated banner/message box.
+          alert("An error occurred. Please try again."); // Placeholder for your error handling logic
+        });
     },
   },
 };
