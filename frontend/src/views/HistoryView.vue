@@ -114,6 +114,7 @@ export default {
           .then(function (response) {
             //handle success
             console.log(response);
+            parent.location.reload();
           })
           .catch(function (response) {
             //handle error
@@ -142,6 +143,7 @@ export default {
         .then(function (response) {
           //handle success
           console.log(response);
+          parent.location.reload();
         })
         .catch(function (response) {
           //handle error
@@ -153,8 +155,107 @@ export default {
 </script>
 
 <style scoped>
+/* Existing styles */
+
 .navbar {
   padding: 20px;
   background-color: #f8f9fa;
+}
+
+.toggle-container button {
+  flex: 1;
+  padding: 10px 0;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  outline: none;
+}
+
+.toggle-container button.active {
+  box-shadow: 0 4px 2px -2px gray;
+  border-color: #ccc;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+  transform: scale(1.2); /* Make checkboxes slightly larger */
+}
+
+.recurring-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.recurring-table th,
+.recurring-table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.recurring-table th {
+  background-color: #eee;
+}
+
+.action-button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.action-button.save {
+  background-color: #28a745;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.action-button.save:hover {
+  background-color: #218838;
+}
+
+.action-button.edit {
+  background-color: yellow;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.action-button.edit:hover {
+  background-color: darkgoldenrod;
+}
+
+.action-button.delete {
+  background-color: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.action-button.delete:hover {
+  background-color: darkred;
+}
+
+.action-button.cancel {
+  background-color: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.action-button.cancel:hover {
+  background-color: darkred;
 }
 </style>
