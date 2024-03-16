@@ -17,29 +17,51 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in historyData" :key="item.id">
-          <td>{{ item.type }}</td>
-          <td>{{ item.value }}</td>
-          <td>{{ item.tagId }}</td>
-          <td>{{ item.tagId2 }}</td>
-          <td>{{ item.notes }}</td>
-          <td>{{ item.timestamp }}</td>
-          <td>
-            <button class="action-button edit" @click="editTransaction(item)">
-              Edit
-            </button>
-            <button
-              class="action-button delete"
-              @click="deleteTransaction(item.id)"
-            >
-              Delete
-            </button>
-          </td>
+        <tr v-for="(item, index) in historyData" :key="item.id">
+          <template v-if="!item.editing">
+            <td>{{ item.type }}</td>
+            <td>{{ item.value }}</td>
+            <td>{{ item.tagId }}</td>
+            <td>{{ item.tagId2 }}</td>
+            <td>{{ item.notes }}</td>
+            <td>{{ item.timestamp }}</td>
+            <td>
+              <button class="action-button edit" @click="toggleEdit(index)">
+                Edit
+              </button>
+              <button
+                class="action-button delete"
+                @click="deleteTransaction(item.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </template>
+          <template v-else>
+            <td><input v-model="item.type" /></td>
+            <td><input v-model="item.value" /></td>
+            <td><input v-model="item.tagId" /></td>
+            <td><input v-model="item.tagId2" /></td>
+            <td><input v-model="item.notes" /></td>
+            <td><input v-model="item.timestamp" /></td>
+            <td>
+              <button
+                class="action-button save"
+                @click="saveTransaction(item, index)"
+              >
+                Save
+              </button>
+              <button class="action-button cancel" @click="toggleEdit(index)">
+                Cancel
+              </button>
+            </td>
+          </template>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
+
 <script setup>
 import NavbarComponent from "@/components/NavbarComponent.vue";
 </script>
@@ -60,19 +82,71 @@ export default {
     async fetchTransactionData() {
       try {
         const response = await axios.get("/api/history");
-        // Extract transactions from the response data
-        this.historyData = response.data.transactions;
+        this.historyData = response.data.transactions.map((item) => ({
+          ...item,
+          editing: false,
+        }));
       } catch (error) {
         console.error("Error fetching transaction data:", error);
       }
     },
-    async editTransaction(item) {
-      // Handle edit action here
-      console.log("Editing transaction:", item);
+    toggleEdit(index) {
+      this.historyData[index].editing = !this.historyData[index].editing;
+    },
+    async saveTransaction(item, index) {
+      try {
+        var bodyFormData = new FormData();
+        bodyFormData.append("id", item.id);
+        bodyFormData.append("editType", "EDIT");
+        bodyFormData.append("tagId", item.tagId);
+        bodyFormData.append("tagId2", item.tagId2);
+        bodyFormData.append("type", item.type);
+        bodyFormData.append("notes", item.notes);
+        bodyFormData.append("value", item.value);
+        bodyFormData.append("timestamp", item.timestamp);
+
+        const response = await axios({
+          method: "post",
+          url: "/api/history",
+          data: bodyFormData,
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+          .then(function (response) {
+            //handle success
+            console.log(response);
+          })
+          .catch(function (response) {
+            //handle error
+            console.log(response);
+          });
+
+        // Assuming the response contains updated transaction data
+        this.historyData[index] = response.data.transactions;
+        this.historyData[index].editing = false;
+      } catch (error) {
+        console.error("Error saving transaction:", error);
+      }
     },
     async deleteTransaction(id) {
       // Handle delete action here
       console.log("Deleting transaction with ID:", id);
+      var bodyFormData = new FormData();
+      bodyFormData.append("id", id);
+      bodyFormData.append("editType", "DELETE");
+      await axios({
+        method: "post",
+        url: "/api/history",
+        data: bodyFormData,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+        .then(function (response) {
+          //handle success
+          console.log(response);
+        })
+        .catch(function (response) {
+          //handle error
+          console.log(response);
+        });
     },
   },
 };
