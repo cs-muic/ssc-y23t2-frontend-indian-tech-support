@@ -8,15 +8,30 @@
       <!--      Sidebar for viewing income/expenditure by category-->
       <div class="sidebar">
         <div class="amount">
-          <h2>Amount</h2>
+          <h2>{{ totalAmount }}</h2>
           <!--          Displays the amount-->
         </div>
         <div class="category">
-          <h2>Buttons</h2>
+          <button @click="toggleIncomeExpense">{{ incomeExpense }}</button>
+          <select v-model="selectedMonth">
+            <option
+              v-for="(month, index) in months"
+              :key="index"
+              :value="month"
+            >
+              {{ month }}
+            </option>
+          </select>
           <!--        Drop down for months, dropdown for Category-->
         </div>
         <div class="tag-stats">
           <h2>Tag Stats</h2>
+          <ul>
+            <li v-for="(value, key) in tagStats" :key="key">
+              Tag: {{ key }}, Amount Spent: {{ value[1] }}
+            </li>
+          </ul>
+
           <!--          Lists down all the tags and how much income and expenditure has been done on them-->
           <!--          represented with a bar -->
         </div>
@@ -42,6 +57,86 @@
 
 <script setup>
 import NavbarComponent from "@/components/NavbarComponent.vue";
+import { computed, ref, watch } from "vue";
+import axios from "axios";
+// import axios from "axios";
+
+const incomeExpense = ref("Income");
+// eslint-disable-next-line no-unused-vars
+const currentMonth = new Date().toLocaleString("default", { month: "long" });
+const selectedMonth = ref(currentMonth);
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const toggleIncomeExpense = () => {
+  incomeExpense.value =
+    incomeExpense.value === "Income" ? "Expenses" : "Income";
+};
+
+const incomeExpenseMapped = computed(() => {
+  return incomeExpense.value === "Income" ? "INCOME" : "EXPENDITURE";
+});
+
+function mapMonthsToNumbers(month) {
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  return months.indexOf(month) + 1;
+}
+
+const totalAmount = ref(0);
+const fetchAmount = async () => {
+  try {
+    const response = await axios.get(
+      `/api/transactions/${incomeExpenseMapped.value}/${mapMonthsToNumbers(
+        selectedMonth.value
+      )}`
+    );
+    totalAmount.value = response.data.totalAmount;
+  } catch (error) {
+    return 0;
+  }
+};
+const tagStats = ref({});
+const fetchTagStats = async () => {
+  try {
+    const response = await axios.get(
+      `/api/transactions/${incomeExpenseMapped.value}/${mapMonthsToNumbers(
+        selectedMonth.value
+      )}/tag-stats`
+    );
+    tagStats.value = response.data.tagStats;
+  } catch (error) {
+    return 0;
+  }
+};
+
+watch([selectedMonth, incomeExpense], fetchAmount, { immediate: true });
+watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
 </script>
 <style scoped>
 .navbar {
@@ -92,6 +187,12 @@ import NavbarComponent from "@/components/NavbarComponent.vue";
   background-color: #e9ecef; /* Placeholder color */
 }
 
+.category {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .filters {
   height: 100px; /* Adjust as needed */
   background-color: #ffffff;
@@ -106,5 +207,28 @@ import NavbarComponent from "@/components/NavbarComponent.vue";
 h2 {
   margin-top: 5px;
   text-align: center;
+}
+
+button {
+  width: 100px;
+  height: 30px;
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 5px;
+}
+
+select {
+  text-align: center;
+  width: 100px;
+  height: 30px;
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 5px;
 }
 </style>
