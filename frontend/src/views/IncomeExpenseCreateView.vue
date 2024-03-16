@@ -93,12 +93,13 @@
         </div>
 
         <div class="form-group">
-          <label for="timestamp">Date & Time</label>
-          <input
-            type="datetime-local"
-            v-model="form.timestamp"
-            class="form-control"
-          />
+          <label for="date">Date</label>
+          <input type="date" v-model="form.date" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="time">Time</label>
+          <input type="time" v-model="form.time" class="form-control" />
         </div>
 
         <div class="form-group">
@@ -121,22 +122,27 @@
           />
         </div>
 
+        <!-- Adjusted checkbox styling and layout -->
         <div class="checkbox-group">
-          <input
-            type="checkbox"
-            id="recurring"
-            v-model="form.recurring"
-            :disabled="form.shortcut"
-          />
-          <label for="recurring">Create as Recurring</label>
+          <label class="custom-checkbox">
+            <input
+              type="checkbox"
+              id="recurring"
+              v-model="form.recurring"
+              :disabled="form.shortcut"
+            />
+            <span class="checkbox-label">Create as Recurring</span>
+          </label>
 
-          <input
-            type="checkbox"
-            id="shortcut"
-            v-model="form.shortcut"
-            :disabled="form.recurring"
-          />
-          <label for="shortcut">Create as Shortcut</label>
+          <label class="custom-checkbox">
+            <input
+              type="checkbox"
+              id="shortcut"
+              v-model="form.shortcut"
+              :disabled="form.recurring"
+            />
+            <span class="checkbox-label">Create as Shortcut</span>
+          </label>
         </div>
 
         <button type="submit" class="submit-button">Record Transaction</button>
@@ -158,7 +164,8 @@ export default {
         type: "",
         value: "",
         notes: "",
-        timestamp: "",
+        date: "", // Separated date
+        time: "", // Separated time
         tag: "",
         tag2: "",
         recurring: false,
@@ -180,8 +187,22 @@ export default {
   },
   methods: {
     handleSubmit() {
-      console.log("Form submitted:", this.form);
-      // Handle form submission
+      // Combine date and time into timestamp
+      const timestamp = `${this.form.date}T${this.form.time}`;
+
+      // Prepare data for logging or further processing
+      const formData = {
+        ...this.form,
+        timestamp, // Use the combined timestamp
+      };
+
+      // Omit the separate date and time for the log, if you want to keep them in the form data for some reason, remove the next two lines
+      delete formData.date;
+      delete formData.time;
+
+      console.log("Form submitted with the following data:", formData);
+
+      // Here you would typically handle the form submission, like sending the data to a backend server
     },
   },
 };
@@ -283,6 +304,22 @@ export default {
 
 .checkbox-group input[type="checkbox"] {
   margin-right: 5px;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+  transform: scale(1.2); /* Make checkboxes slightly larger */
+}
+
+.checkbox-label {
+  cursor: pointer;
 }
 
 .recurring-table {
