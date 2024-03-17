@@ -1,0 +1,12 @@
+[
+  {"id": "1", "name": "Income"},
+  {"id": "2", "name": "Housing"},
+  {"id": "3", "name": "Utilities"},
+  {"id": "4", "name": "Food"},
+  {"id": "5", "name": "Transportation"},
+  {"id": "6", "name": "Healthcare"},
+  {"id": "7", "name": "Insurance"},
+  {"id": "8", "name": "Personal Spending"},
+  {"id": "9", "name": "Recreation & Entertainment"},
+  {"id": "10", "name": "Savings & Investments"}
+]

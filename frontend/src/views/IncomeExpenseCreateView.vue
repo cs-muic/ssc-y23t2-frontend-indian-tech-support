@@ -112,22 +112,22 @@
 
         <div class="form-group">
           <label for="tag">Primary Tag</label>
-          <input
-            type="text"
-            v-model="form.tag"
-            placeholder="e.g., Groceries"
-            class="form-control"
-          />
+          <select v-model="form.tagId" class="form-control" required>
+            <option disabled value="">Select Primary Tag</option>
+            <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+              {{ tag.name }}
+            </option>
+          </select>
         </div>
 
         <div class="form-group">
           <label for="tag2">Secondary Tag</label>
-          <input
-            type="text"
-            v-model="form.tag2"
-            placeholder="e.g., Monthly Essentials"
-            class="form-control"
-          />
+          <select v-model="form.tagId2" class="form-control">
+            <option disabled value="">Select Secondary Tag</option>
+            <option v-for="tag in tags2" :key="tag.id" :value="tag.id">
+              {{ tag.name }}
+            </option>
+          </select>
         </div>
 
         <!-- Adjusted checkbox styling and layout -->
@@ -161,6 +161,8 @@
 
 <script>
 import axios from "axios";
+import Tags from "../assets/Tags.json"; // Adjust the path as necessary
+import Tags2 from "../assets/Tags2.json"; // Adjust the path as necessary
 
 export default {
   name: "IncomeExpenseCreationView",
@@ -170,14 +172,16 @@ export default {
   data() {
     return {
       activeTab: "shortcuts",
+      tags: Tags, // Initialize tags from the imported JSON file
+      tags2: Tags2, // Initialize tags from the imported JSON file
       form: {
         type: "",
         value: "",
         notes: "",
         date: "", // Separated date
         time: "", // Separated time
-        tag: "",
-        tag2: "",
+        tagId: "",
+        tagId2: "",
         recurring: false,
         shortcut: false,
       },
@@ -329,6 +333,7 @@ export default {
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  color: black !important; /* Temporarily force text color */
 }
 
 .submit-button {
