@@ -161,13 +161,13 @@
 
 <script>
 import axios from "axios";
-import Tags from "../assets/Tags.json"; // Adjust the path as necessary
-import Tags2 from "../assets/Tags2.json"; // Adjust the path as necessary
+import Tags from "@/assets/Tags.json"; // Adjust the path as necessary
+import Tags2 from "@/assets/Tags2.json"; // Adjust the path as necessary
 
 export default {
   name: "IncomeExpenseCreationView",
   components: {
-    NavbarComponent: () => import("../components/NavbarComponent"),
+    NavbarComponent: () => import("@/components/NavbarComponent"),
   },
   data() {
     return {

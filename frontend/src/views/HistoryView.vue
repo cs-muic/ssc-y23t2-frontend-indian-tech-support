@@ -24,8 +24,8 @@
               <td>{{ index + 1 }}</td>
               <td>{{ item.type }}</td>
               <td>{{ item.value }}</td>
-              <td>{{ item.tagId }}</td>
-              <td>{{ item.tagId2 }}</td>
+              <td>{{ getTagNameById(item.tagId) }}</td>
+              <td>{{ getTag2NameById(item.tagId2) }}</td>
               <td>{{ item.notes }}</td>
               <td>{{ item.timestamp }}</td>
               <td>
@@ -44,8 +44,20 @@
               <td>{{ index + 1 }}</td>
               <td><input v-model="item.type" /></td>
               <td><input v-model="item.value" /></td>
-              <td><input v-model="item.tagId" /></td>
-              <td><input v-model="item.tagId2" /></td>
+              <td>
+                <select v-model="item.tagId">
+                  <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+                    {{ tag.name }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <select v-model="item.tagId2">
+                  <option v-for="tag2 in tags2" :key="tag2.id" :value="tag2.id">
+                    {{ tag2.name }}
+                  </option>
+                </select>
+              </td>
               <td><input v-model="item.notes" /></td>
               <td><input v-model="item.timestamp" /></td>
               <td>
@@ -67,17 +79,21 @@
   </div>
 </template>
 
-<script setup>
-import NavbarComponent from "@/components/NavbarComponent.vue";
-</script>
-
 <script>
 import axios from "axios";
+import NavbarComponent from "@/components/NavbarComponent.vue";
+import Tags from "@/assets/Tags.json";
+import Tags2 from "@/assets/Tags2.json";
 
 export default {
+  components: {
+    NavbarComponent,
+  },
   data() {
     return {
       historyData: [],
+      tags: Tags,
+      tags2: Tags2,
     };
   },
   mounted() {
@@ -154,6 +170,16 @@ export default {
           //handle error
           console.log(response);
         });
+    },
+    getTagNameById(tagId) {
+      const tagIdStr = String(tagId);
+      const tag = this.tags.find((tag) => tag.id === tagIdStr);
+      return tag ? tag.name : "-";
+    },
+    getTag2NameById(tagId2) {
+      const tagId2Str = String(tagId2);
+      const tag2 = this.tags2.find((tag) => tag.id === tagId2Str);
+      return tag2 ? tag2.name : "-";
     },
   },
 };
