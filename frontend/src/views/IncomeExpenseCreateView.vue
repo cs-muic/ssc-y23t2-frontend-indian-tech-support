@@ -24,8 +24,8 @@
     <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'shortcuts'" class="top-half-content">
       <!-- Sample shortcut buttons -->
-      <button class="shortcut-button income">+</button>
-      <button class="shortcut-button expenditure">−</button>
+      <button class="shortcut-button income">+ Income</button>
+      <button class="shortcut-button expenditure">− Expenditure</button>
     </div>
 
     <div v-if="activeTab === 'viewRecurring'" class="top-half-content">
@@ -63,6 +63,7 @@
 
     <!-- Form in the bottom half of the page -->
     <div class="form-container">
+      <h2 class="form-title">Create New Transaction</h2>
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="type">Type</label>
@@ -194,7 +195,6 @@ export default {
         // this.form.value = "";
       }
     },
-    // Define your methods within this methods object
     async handleSubmit() {
       // Combine date and time into timestamp
       const timestamp = `${this.form.date}T${this.form.time}:00.000`;
@@ -220,15 +220,12 @@ export default {
       })
         .then(() => {
           // Success handling
-          // Assuming this.$router is correctly scoped, this navigates to the "/history" route.
           this.$router.push("/history");
         })
         .catch((error) => {
           // Error handling
           console.error("Submission error:", error);
-          // Display your error banner here
-          // This could be a simple alert or a more sophisticated banner/message box.
-          alert("An error occurred. Please try again."); // Placeholder for your error handling logic
+          alert("An error occurred. Please try again."); // Placeholder for error handling
         });
     },
   },
@@ -236,13 +233,19 @@ export default {
 </script>
 
 <style scoped>
-/* Existing styles */
-
+/* Navigation bar styles */
 .navbar {
   padding: 20px;
   background-color: #f8f9fa;
 }
 
+.top-half-content {
+  width: 90%;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
+/* Toggle container for switching between views */
 .toggle-container {
   display: flex;
   justify-content: center;
@@ -267,27 +270,39 @@ export default {
   border-color: #ccc;
 }
 
+/* Shortcut buttons styling */
 .shortcut-button {
-  display: inline-block;
-  width: 50px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 100px;
   height: 50px;
-  line-height: 46px;
-  border-radius: 50%;
+  padding: 0 20px;
+  border-radius: 10px;
   margin: 10px;
   border: 2px solid;
-  font-size: 24px;
+  font-size: 16px;
   text-align: center;
-  vertical-align: middle;
+  transition: background-color 0.3s ease;
 }
 
 .income {
   border-color: green;
+  color: white;
+  background-color: green;
 }
 
 .expenditure {
   border-color: red;
+  color: white;
+  background-color: red;
 }
 
+.shortcut-button:hover {
+  transform: scale(1.05);
+}
+
+/* Form container styles */
 .form-container {
   padding: 20px;
   background: #fff;
@@ -295,6 +310,13 @@ export default {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   max-width: 700px;
   margin: 30px auto;
+}
+
+.form-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
 .form-group {
@@ -329,10 +351,6 @@ export default {
   margin-bottom: 20px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin-right: 5px;
-}
-
 .custom-checkbox {
   display: flex;
   align-items: center;
@@ -342,13 +360,14 @@ export default {
 .custom-checkbox input[type="checkbox"] {
   margin-right: 10px;
   cursor: pointer;
-  transform: scale(1.2); /* Make checkboxes slightly larger */
+  transform: scale(1.2);
 }
 
 .checkbox-label {
   cursor: pointer;
 }
 
+/* Styles for the recurring data table */
 .recurring-table {
   width: 100%;
   border-collapse: collapse;
