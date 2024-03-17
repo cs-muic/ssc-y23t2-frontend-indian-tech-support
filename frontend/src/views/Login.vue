@@ -36,6 +36,14 @@
             </v-form>
             <!-- Signup Form -->
             <v-form v-else ref="signupForm" class="py-5">
+              <v-alert
+                v-if="signupError"
+                type="error"
+                dismissible
+                @click="signupError = ''"
+              >
+                {{ signupError }}
+              </v-alert>
               <v-text-field
                 v-model="newName"
                 :rules="[(v) => !!v || 'Display name is required']"
@@ -90,6 +98,7 @@ import Vue from "vue";
 
 export default {
   data: () => ({
+    signupError: "",
     showSignup: false,
     flipKey: 0,
     username: "",
@@ -124,13 +133,21 @@ export default {
         formData.append("password", this.newPassword);
         formData.append("display_name", this.newName);
 
-        // Iterate over each item in the form and log it to the console
-        for (let pair of formData.entries()) {
-          console.log(pair[0] + ": " + pair[1]);
+        try {
+          let response = await Vue.axios.post("/api/signup", formData);
+          if (response.data.success) {
+            console.log("Signup successful");
+            this.$router.push({ path: "/" });
+          } else {
+            // Handle signup failure
+            this.signupError = response.data.message; // Set the error message
+            console.error("Signup failed:", response.data.message);
+          }
+        } catch (error) {
+          // In case of network errors or other axios errors
+          this.signupError = "An unexpected error occurred. Please try again.";
+          console.error("Signup request failed:", error);
         }
-        // Assumed an endpoint "/api/signup" for signup
-        // let response = await Vue.axios.post("/api/signup", formData);
-        // Handle the signup response here
       }
     },
     reset() {

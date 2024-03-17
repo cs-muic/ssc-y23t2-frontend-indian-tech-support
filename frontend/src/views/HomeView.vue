@@ -4,6 +4,9 @@
     <nav class="navbar">
       <NavbarComponent />
     </nav>
+    <div class="user-greeting">
+      <h1>{{ greeting }}, {{ userName }}!</h1>
+    </div>
 
     <!-- Main Content Section -->
     <div class="main-content">
@@ -39,11 +42,35 @@
 </template>
 
 <script>
-import NavbarComponent from "../components/NavbarComponent.vue";
+import NavbarComponent from "@/components/NavbarComponent.vue";
+import axios from "axios";
 export default {
   name: "Home",
   components: {
     NavbarComponent,
+  },
+  data: () => ({
+    userName: "",
+  }),
+  computed: {
+    greeting() {
+      const hour = new Date().getHours();
+      if (hour < 12) return "Good morning";
+      if (hour < 18) return "Good afternoon";
+      return "Good evening";
+    },
+  },
+  mounted() {
+    axios
+      .get("/api/whoami")
+      .then((response) => {
+        // Assuming the response contains a JSON object with a 'name' property
+        this.userName = response.data.displayName;
+      })
+      .catch((error) => {
+        console.error("Error fetching user info:", error.message);
+        // Handle error, maybe set a default name or display an error message
+      });
   },
 };
 </script>
