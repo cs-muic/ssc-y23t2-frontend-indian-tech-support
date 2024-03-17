@@ -4,64 +4,66 @@
       <NavbarComponent />
     </nav>
     <!-- Recurring data table -->
-    <table class="recurring-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Type</th>
-          <th>Amount</th>
-          <th>Primary Tag</th>
-          <th>Secondary Tag</th>
-          <th>Notes</th>
-          <th>Date & Time</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item, index) in historyData" :key="item.id">
-          <template v-if="!item.editing">
-            <td>{{ index + 1 }}</td>
-            <td>{{ item.type }}</td>
-            <td>{{ item.value }}</td>
-            <td>{{ item.tagId }}</td>
-            <td>{{ item.tagId2 }}</td>
-            <td>{{ item.notes }}</td>
-            <td>{{ item.timestamp }}</td>
-            <td>
-              <button class="action-button edit" @click="toggleEdit(index)">
-                Edit
-              </button>
-              <button
-                class="action-button delete"
-                @click="deleteTransaction(item.id)"
-              >
-                Delete
-              </button>
-            </td>
-          </template>
-          <template v-else>
-            <td>{{ index + 1 }}</td>
-            <td><input v-model="item.type" /></td>
-            <td><input v-model="item.value" /></td>
-            <td><input v-model="item.tagId" /></td>
-            <td><input v-model="item.tagId2" /></td>
-            <td><input v-model="item.notes" /></td>
-            <td><input v-model="item.timestamp" /></td>
-            <td>
-              <button
-                class="action-button save"
-                @click="saveTransaction(item, index)"
-              >
-                Save
-              </button>
-              <button class="action-button cancel" @click="toggleEdit(index)">
-                Cancel
-              </button>
-            </td>
-          </template>
-        </tr>
-      </tbody>
-    </table>
+    <div class="container">
+      <table class="recurring-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Primary Tag</th>
+            <th>Secondary Tag</th>
+            <th>Notes</th>
+            <th>Date & Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, index) in historyData" :key="item.id">
+            <template v-if="!item.editing">
+              <td>{{ index + 1 }}</td>
+              <td>{{ item.type }}</td>
+              <td>{{ item.value }}</td>
+              <td>{{ item.tagId }}</td>
+              <td>{{ item.tagId2 }}</td>
+              <td>{{ item.notes }}</td>
+              <td>{{ item.timestamp }}</td>
+              <td>
+                <button class="action-button edit" @click="toggleEdit(index)">
+                  Edit
+                </button>
+                <button
+                  class="action-button delete"
+                  @click="deleteTransaction(item.id)"
+                >
+                  Delete
+                </button>
+              </td>
+            </template>
+            <template v-else>
+              <td>{{ index + 1 }}</td>
+              <td><input v-model="item.type" /></td>
+              <td><input v-model="item.value" /></td>
+              <td><input v-model="item.tagId" /></td>
+              <td><input v-model="item.tagId2" /></td>
+              <td><input v-model="item.notes" /></td>
+              <td><input v-model="item.timestamp" /></td>
+              <td>
+                <button
+                  class="action-button save"
+                  @click="saveTransaction(item, index)"
+                >
+                  Save
+                </button>
+                <button class="action-button cancel" @click="toggleEdit(index)">
+                  Cancel
+                </button>
+              </td>
+            </template>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -158,107 +160,107 @@ export default {
 </script>
 
 <style scoped>
-/* Existing styles */
+/* General container styling for refined look */
+.container {
+  width: 90%;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8f9fa; /* Subtle background color */
+  border-radius: 10px; /* Rounded corners for a modern look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds depth with a soft shadow */
+}
 
+/* Navbar adjustments */
 .navbar {
   padding: 20px;
-  background-color: #f8f9fa;
+  background-color: #f8f9fa; /* Light and neutral background color */
 }
 
-.toggle-container button {
-  flex: 1;
-  padding: 10px 0;
-  cursor: pointer;
-  background-color: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  outline: none;
-}
-
-.toggle-container button.active {
-  box-shadow: 0 4px 2px -2px gray;
-  border-color: #ccc;
-}
-
-.checkbox-group input[type="checkbox"] {
-  margin-right: 5px;
-}
-
-.custom-checkbox input[type="checkbox"] {
-  margin-right: 10px;
-  cursor: pointer;
-  transform: scale(1.2); /* Make checkboxes slightly larger */
-}
-
+/* Styling for the recurring table */
 .recurring-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  overflow: hidden; /* Ensures the shadow isn't cut off */
 }
 
 .recurring-table th,
 .recurring-table td {
-  padding: 10px;
-  border: 1px solid #ccc;
+  padding: 15px; /* Comfortable padding for better readability */
+  border: 1px solid #dee2e6; /* Light border for a soft look */
+  text-align: left; /* Text aligned to the left for a cleaner look */
 }
 
 .recurring-table th {
-  background-color: #eee;
+  background-color: #007bff; /* Vibrant header background */
+  color: #ffffff; /* Contrast text color */
+  font-size: 16px; /* Slightly larger font size for emphasis */
+  text-transform: uppercase; /* Uppercase text for a formal appearance */
+  letter-spacing: 0.05em; /* Spaced letters for improved readability */
 }
 
+.recurring-table tr:hover {
+  background-color: #f5f5f5; /* Highlight rows on hover for interactivity */
+}
+
+/* Odd and even row styling for improved readability */
+.recurring-table tbody tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+.recurring-table tbody tr:nth-child(even) {
+  background-color: #e9ecef;
+}
+
+/* Action button styling for a uniform look and feel */
 .action-button {
-  padding: 5px 10px;
-  margin-right: 5px;
+  padding: 8px 15px;
+  margin-right: 10px;
   border: none;
   cursor: pointer;
+  font-size: 14px;
+  border-radius: 5px; /* Rounded corners for a modern touch */
+  transition: all 0.2s ease-in-out; /* Smooth transition for hover effects */
 }
 
 .action-button.save {
-  background-color: #28a745;
-  border: none;
+  background-color: #28a745; /* Success green */
   color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.action-button.save:hover {
-  background-color: #218838;
-}
-
-.action-button.edit {
-  background-color: yellow;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.action-button.edit:hover {
-  background-color: darkgoldenrod;
+.action-button.edit,
+.action-button.cancel {
+  background-color: #17a2b8; /* Info blue for a cohesive look */
+  color: white;
 }
 
 .action-button.delete {
-  background-color: red;
-  border: none;
+  background-color: #dc3545; /* Danger red */
   color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.action-button.delete:hover {
-  background-color: darkred;
+.action-button:hover {
+  filter: brightness(90%); /* Slightly darken button on hover for feedback */
 }
 
-.action-button.cancel {
-  background-color: red;
-  border: none;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
+/* Input styling for when in editing state */
+input[type="text"],
+input[type="datetime-local"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px; /* Ample padding for ease of use */
+  margin-bottom: 5px; /* Spacing below inputs */
+  border: 1px solid #ced4da;
+  border-radius: 4px; /* Rounded corners for a consistent look */
+  box-sizing: border-box; /* Ensures padding does not affect overall width */
+  transition: border 0.2s ease-in-out; /* Smooth transition for focus */
 }
 
-.action-button.cancel:hover {
-  background-color: darkred;
+input[type="text"]:focus,
+input[type="datetime-local"]:focus,
+input[type="number"]:focus {
+  border-color: #007bff; /* Highlight color for focused input */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow effect */
 }
 </style>
