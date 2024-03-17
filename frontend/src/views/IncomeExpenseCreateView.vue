@@ -203,7 +203,6 @@ export default {
       // Combine date and time into timestamp
       const timestamp = `${this.form.date}T${this.form.time}:00.000`;
 
-      // Prepare data for logging or further processing
       const formData = {
         ...this.form,
         timestamp, // Use the combined timestamp
@@ -212,8 +211,6 @@ export default {
       // Adjustments for omitting separate date, time, tag, and tag2
       delete formData.date;
       delete formData.time;
-
-      console.log("Form submitted with the following data:", formData);
 
       // eslint-disable-next-line no-unused-vars
       const response = axios({

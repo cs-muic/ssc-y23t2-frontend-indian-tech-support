@@ -1,5 +1,5 @@
 <template>
-  <div class="top-half-content">
+  <div class="history-view">
     <nav class="navbar">
       <NavbarComponent />
     </nav>
@@ -188,7 +188,7 @@ export default {
 <style scoped>
 /* General container styling for refined look */
 .container {
-  width: 90%;
+  width: 90% !important;
   margin: 0 auto;
   padding: 20px;
   background: #f8f9fa; /* Subtle background color */

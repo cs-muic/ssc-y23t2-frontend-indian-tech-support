@@ -53,14 +53,6 @@
                 class="text-white"
               ></v-text-field>
               <v-text-field
-                v-model="newEmail"
-                :rules="emailRules"
-                label="Email"
-                required
-                dark
-                class="text-white"
-              ></v-text-field>
-              <v-text-field
                 v-model="newPassword"
                 :rules="passwordRules"
                 label="Password"
@@ -103,7 +95,6 @@ export default {
     username: "",
     newName: "",
     newUsername: "",
-    newEmail: "",
     newPassword: "",
     confirmPassword: "",
     usernameRules: [(v) => !!v || "Username is required"],
@@ -130,10 +121,14 @@ export default {
       if (this.$refs.signupForm.validate()) {
         let formData = new FormData();
         formData.append("username", this.newUsername);
-        formData.append("email", this.newEmail);
         formData.append("password", this.newPassword);
         formData.append("display_name", this.newName);
-        // Assume an endpoint "/api/signup" for signup
+
+        // Iterate over each item in the form and log it to the console
+        for (let pair of formData.entries()) {
+          console.log(pair[0] + ": " + pair[1]);
+        }
+        // Assumed an endpoint "/api/signup" for signup
         // let response = await Vue.axios.post("/api/signup", formData);
         // Handle the signup response here
       }
@@ -145,7 +140,6 @@ export default {
     resetSignupForm() {
       this.newName = "";
       this.newUsername = "";
-      this.newEmail = "";
       this.newPassword = "";
       this.confirmPassword = "";
     },
@@ -166,7 +160,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .flip-enter-active,
 .flip-leave-active {
   transition: transform 0.5s;
