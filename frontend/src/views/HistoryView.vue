@@ -7,6 +7,7 @@
     <table class="recurring-table">
       <thead>
         <tr>
+          <th>#</th>
           <th>Type</th>
           <th>Amount</th>
           <th>Primary Tag</th>
@@ -19,6 +20,7 @@
       <tbody>
         <tr v-for="(item, index) in historyData" :key="item.id">
           <template v-if="!item.editing">
+            <td>{{ index + 1 }}</td>
             <td>{{ item.type }}</td>
             <td>{{ item.value }}</td>
             <td>{{ item.tagId }}</td>
@@ -38,6 +40,7 @@
             </td>
           </template>
           <template v-else>
+            <td>{{ index + 1 }}</td>
             <td><input v-model="item.type" /></td>
             <td><input v-model="item.value" /></td>
             <td><input v-model="item.tagId" /></td>
