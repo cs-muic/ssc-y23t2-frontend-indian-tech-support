@@ -2,7 +2,9 @@
   <nav class="navbar">
     <div class="nav-links">
       <router-link to="/" class="nav-link">Home</router-link>
-      <router-link to="/" class="nav-link">New Income/Expenditure</router-link>
+      <router-link to="/income-expense-creation" class="nav-link"
+        >New Income/Expenditure</router-link
+      >
       <router-link to="/history" class="nav-link">History</router-link>
       <router-link to="/analytics" class="nav-link">Analytics</router-link>
     </div>

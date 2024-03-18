@@ -1,0 +1,12 @@
+[
+  {"id": "1", "name": "Salary"},
+  {"id": "2", "name": "Bonuses"},
+  {"id": "3", "name": "Rent Income"},
+  {"id": "4", "name": "Investment Returns"},
+  {"id": "5", "name": "Freelance"},
+  {"id": "6", "name": "Electricity"},
+  {"id": "7", "name": "Water"},
+  {"id": "8", "name": "Internet"},
+  {"id": "9", "name": "Groceries"},
+  {"id": "10", "name": "Dining Out"}
+]
