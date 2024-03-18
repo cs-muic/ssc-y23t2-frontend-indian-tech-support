@@ -31,7 +31,7 @@
           <!--          represented with a bar -->
           <ul>
             <li v-for="(value, key) in tagStats" :key="key">
-              Tag: {{ key }}, Amount Spent: {{ value[1] }}
+              Tag: {{ value[0] }}, Amount Spent: {{ value[1] }}
             </li>
           </ul>
         </div>
