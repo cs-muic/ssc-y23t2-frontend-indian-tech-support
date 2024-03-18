@@ -178,8 +178,8 @@ export default {
         type: "",
         value: "",
         notes: "",
-        date: "", // Separated date
-        time: "", // Separated time
+        date: this.getCurrentDate(), // Initialize with current date
+        time: this.getCurrentTime(), // Initialize with current time
         tagId: "",
         tagId2: "",
         recurring: false,
@@ -188,6 +188,14 @@ export default {
     };
   },
   methods: {
+    getCurrentDate() {
+      const today = new Date();
+      return today.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
+    },
+    getCurrentTime() {
+      const now = new Date();
+      return now.toTimeString().split(" ")[0].slice(0, 5); // Formats the time as HH:MM
+    },
     validateDecimal() {
       // This regex allows up to 5 decimal places.
       const regex = /^\d+(\.\d{1,5})?$/;
