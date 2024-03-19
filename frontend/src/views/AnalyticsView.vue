@@ -128,13 +128,8 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
-          <!--          <Bar id="my-chart-id" :options="chartOptions" :data="chartData" />-->
-          <p>
-            {{ startDate }}<br />{{ endDate }}<br />{{ chartType }}<br />{{
-              transactionType
-            }}<br />{{ timeframe }}
-          </p>
-          <p>Printing Graph data: {{ graphData }}</p>
+          <Bar :data="chartData" />
+          <p>{{ graphData }}</p>
           <!-- Graph content... -->
         </div>
       </div>
@@ -158,6 +153,7 @@ const chartType = ref("line");
 const timeframe = ref("Day");
 const transactionType = ref("EXPENDITURE");
 const showFilters = ref(false);
+// eslint-disable-next-line no-import-assign,no-redeclare
 const graphData = ref(null);
 
 async function fetchGraphData(startDate, endDate, transactionType, timeframe) {
@@ -269,12 +265,7 @@ const fetchTagStats = async () => {
 };
 // Fetch graph data when component is mounted
 onMounted(async () => {
-  graphData.value = await fetchGraphData(
-    startDate.value,
-    endDate.value,
-    transactionType.value,
-    timeframe.value
-  );
+  await createChart();
 });
 
 watch([selectedMonth, incomeExpense], fetchAmount, { immediate: true });
@@ -303,13 +294,25 @@ ChartJS.register(
 
 export default {
   name: "BarChart",
-  // eslint-disable-next-line vue/no-unused-components
   components: { Bar },
+  setup() {
+    // Import graphData from the setup script
+
+    const { graphData } = this.setup();
+
+    return {
+      graphData,
+    };
+  },
   data() {
     return {
       chartData: {
-        labels: ["January", "February", "March"],
-        datasets: [{ data: [40, 20, 12] }],
+        labels: ["1", "2"], //this.graphData.value.data.map((item) => item[0]),
+        datasets: [
+          {
+            data: ["1", "2"], //this.graphData.value.data.map((item) => item[1]),
+          },
+        ],
       },
       chartOptions: {
         responsive: true,
@@ -409,6 +412,7 @@ export default {
   height: 550px; /* Adjust as needed */
   background-color: #ffffff;
   margin-top: 10px;
+  padding: 5px;
 }
 
 h2 {
