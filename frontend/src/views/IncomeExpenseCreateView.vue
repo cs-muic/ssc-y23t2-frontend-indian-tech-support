@@ -23,11 +23,9 @@
 
     <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'shortcuts'" class="top-half-content">
-      <!-- Sample shortcut buttons -->
       <button class="shortcut-button income">+ Income</button>
       <button class="shortcut-button expenditure">− Expenditure</button>
     </div>
-
     <div v-if="activeTab === 'viewRecurring'" class="top-half-content">
       <!-- Recurring data table -->
       <table class="recurring-table">
@@ -64,80 +62,14 @@
     <!-- Form in the bottom half of the page -->
     <div class="form-container">
       <h2 class="form-title">Create New Transaction</h2>
-      <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label for="type">Type</label>
-          <select v-model="form.type" class="form-control" required>
-            <option disabled value="">Select Type</option>
-            <option value="INCOME">Income</option>
-            <option value="EXPENDITURE">Expenditure</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="value">Amount</label>
-          <input
-            type="text"
-            v-model="form.value"
-            placeholder="e.g., 100.00"
-            class="form-control"
-            @blur="validateDecimal"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="date">Date</label>
-          <input
-            type="date"
-            v-model="form.date"
-            class="form-control"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="time">Time</label>
-          <input type="time" v-model="form.time" class="form-control" />
-        </div>
-
-        <div class="form-group">
-          <label for="notes">Notes</label>
-          <textarea
-            v-model="form.notes"
-            placeholder="Any relevant details"
-            class="form-control"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="tag">Primary Tag</label>
-          <select v-model="form.tagId" class="form-control" required>
-            <option disabled value="">Select Primary Tag</option>
-            <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-              {{ tag.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="tag2">Secondary Tag</label>
-          <select v-model="form.tagId2" class="form-control">
-            <option disabled value="">Select Secondary Tag</option>
-            <option v-for="tag in tags2" :key="tag.id" :value="tag.id">
-              {{ tag.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Adjusted checkbox styling and layout -->
-        <div class="checkbox-group">
+      <form @submit.prevent="handleSubmit" class="form-horizontal">
+        <div class="form-row checkbox-group">
           <label class="custom-checkbox">
             <input
               type="checkbox"
               id="recurring"
               v-model="form.recurring"
-              :disabled="form.shortcut"
+              @change="onRecurringChange"
             />
             <span class="checkbox-label">Create as Recurring</span>
           </label>
@@ -147,10 +79,97 @@
               type="checkbox"
               id="shortcut"
               v-model="form.shortcut"
-              :disabled="form.recurring"
+              @change="onShortcutChange"
             />
             <span class="checkbox-label">Create as Shortcut</span>
           </label>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="type">Type</label>
+            <select v-model="form.type" class="form-control" required>
+              <option disabled value="">Select Type</option>
+              <option value="INCOME">Income</option>
+              <option value="EXPENDITURE">Expenditure</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="value">Amount</label>
+            <input
+              type="text"
+              v-model="form.value"
+              placeholder="e.g., 100.00"
+              class="form-control"
+              @blur="validateDecimal"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" v-if="!form.recurring">
+            <label for="date">Date</label>
+            <input
+              type="date"
+              v-model="form.date"
+              class="form-control"
+              :disabled="form.recurring"
+              required
+            />
+          </div>
+
+          <div class="form-group" v-if="!form.recurring">
+            <label for="time">Time</label>
+            <input
+              type="time"
+              v-model="form.time"
+              class="form-control"
+              :disabled="form.recurring"
+            />
+          </div>
+
+          <div class="form-group" v-if="form.recurring">
+            <label for="dayOfMonth">Day of Month</label>
+            <select v-model="form.dayOfMonth" class="form-control" required>
+              <option value="" disabled>Select Day</option>
+              <option v-for="day in 31" :value="day" :key="day">
+                {{ day }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tag">Primary Tag</label>
+            <select v-model="form.tagId" class="form-control" required>
+              <option disabled value="">Select Primary Tag</option>
+              <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+                {{ tag.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tag2">Secondary Tag</label>
+            <select v-model="form.tagId2" class="form-control">
+              <option disabled value="">Select Secondary Tag</option>
+              <option v-for="tag in tags2" :key="tag.id" :value="tag.id">
+                {{ tag.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="notes">Notes</label>
+          <textarea
+            v-model="form.notes"
+            placeholder="Any relevant details"
+            class="form-control"
+          ></textarea>
         </div>
 
         <button type="submit" class="submit-button">Record Transaction</button>
@@ -194,6 +213,18 @@ export default {
     },
   },
   methods: {
+    onRecurringChange() {
+      if (this.form.recurring) {
+        this.form.shortcut = false; // Turn off 'Shortcut' if 'Recurring' is checked
+      }
+    },
+
+    // Method to handle changes in the 'Shortcut' checkbox
+    onShortcutChange() {
+      if (this.form.shortcut) {
+        this.form.recurring = false; // Turn off 'Recurring' if 'Shortcut' is checked
+      }
+    },
     updateSubcategories(mainCategoryId) {
       // Calculate start and end IDs for subcategories based on the selected main category ID
       const startId = parseInt(mainCategoryId) * 3 - 2;
@@ -259,19 +290,11 @@ export default {
 </script>
 
 <style scoped>
-/* Navigation bar styles */
 .navbar {
   padding: 20px;
   background-color: #f8f9fa;
 }
 
-.top-half-content {
-  width: 90%;
-  margin: 0 auto;
-  margin-top: 20px;
-}
-
-/* Toggle container for switching between views */
 .toggle-container {
   display: flex;
   justify-content: center;
@@ -292,11 +315,10 @@ export default {
 }
 
 .toggle-container button.active {
-  box-shadow: 0 4px 2px -2px gray;
   border-color: #ccc;
+  box-shadow: 0 4px 2px -2px gray;
 }
 
-/* Shortcut buttons styling */
 .shortcut-button {
   display: inline-flex;
   justify-content: center;
@@ -328,14 +350,15 @@ export default {
   transform: scale(1.05);
 }
 
-/* Form container styles */
 .form-container {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  max-width: 700px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 75%;
   margin: 30px auto;
+  position: relative;
+  z-index: 100;
 }
 
 .form-title {
@@ -345,22 +368,37 @@ export default {
   margin-bottom: 20px;
 }
 
-.form-group {
-  margin-bottom: 20px;
+.form-horizontal .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
-.form-control {
+.form-horizontal .form-group {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 48%;
+}
+
+.form-horizontal .form-group.full-width {
+  flex-basis: 100%;
+}
+
+.form-horizontal .form-group > label {
+  margin-bottom: 5px;
+}
+
+.form-horizontal .form-control {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  color: black !important; /* Temporarily force text color */
 }
 
 .submit-button {
   width: 100%;
-  padding: 15px 0;
+  padding: 20px 0;
   background-color: #28a745;
   border: none;
   color: white;
@@ -368,62 +406,34 @@ export default {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-}
-
-.submit-button:hover {
-  background-color: #218838;
+  margin-top: 20px;
 }
 
 .checkbox-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
   margin-bottom: 20px;
 }
 
 .custom-checkbox {
+  flex-basis: 48%; /* Adjust to fit two checkboxes in one row */
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .custom-checkbox input[type="checkbox"] {
   margin-right: 10px;
   cursor: pointer;
-  transform: scale(1.2);
+  accent-color: #28a745;
 }
 
 .checkbox-label {
   cursor: pointer;
-}
-
-/* Styles for the recurring data table */
-.recurring-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.recurring-table th,
-.recurring-table td {
-  padding: 10px;
-  border: 1px solid #ccc;
-}
-
-.recurring-table th {
-  background-color: #eee;
-}
-
-.action-button {
-  padding: 5px 10px;
-  margin-right: 5px;
-  border: none;
-  cursor: pointer;
-}
-
-.action-button.edit {
-  background-color: #ffc107;
-}
-
-.action-button.delete {
-  background-color: #dc3545;
-  color: white;
+  font-weight: 500;
 }
 </style>
