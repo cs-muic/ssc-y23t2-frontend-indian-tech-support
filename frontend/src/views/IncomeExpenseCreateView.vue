@@ -8,10 +8,10 @@
     <!-- Toggle switch for the top half of the page -->
     <div class="toggle-container">
       <button
-        :class="{ active: activeTab === 'shortcuts' }"
-        @click="activeTab = 'shortcuts'"
+        :class="{ active: activeTab === 'favorites' }"
+        @click="activeTab = 'favorites'"
       >
-        Shortcuts
+        Favorites
       </button>
       <button
         :class="{ active: activeTab === 'viewRecurring' }"
@@ -22,7 +22,7 @@
     </div>
 
     <!-- Content for the top half of the page, changes based on active tab -->
-    <div v-if="activeTab === 'shortcuts'" class="top-half-content">
+    <div v-if="activeTab === 'favorites'" class="top-half-content">
       <button class="shortcut-button income">+ Income</button>
       <button class="shortcut-button expenditure">− Expenditure</button>
     </div>
@@ -190,7 +190,7 @@ export default {
   },
   data() {
     return {
-      activeTab: "shortcuts",
+      activeTab: "favorites",
       tags: mainCategories, // Initialize tags from the imported JSON file
       tags2: [], // Will be dynamically filled based on main category selection
       form: {
@@ -319,6 +319,17 @@ export default {
   box-shadow: 0 4px 2px -2px gray;
 }
 
+.top-half-content {
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 75%;
+  margin: 30px auto;
+  position: relative;
+  z-index: 100;
+}
+
 .shortcut-button {
   display: inline-flex;
   justify-content: center;
@@ -435,5 +446,37 @@ export default {
 .checkbox-label {
   cursor: pointer;
   font-weight: 500;
+}
+/* Styles for the recurring data table */
+.recurring-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.recurring-table th,
+.recurring-table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.recurring-table th {
+  background-color: #eee;
+}
+
+.action-button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.action-button.edit {
+  background-color: #ffc107;
+}
+
+.action-button.delete {
+  background-color: #dc3545;
+  color: white;
 }
 </style>
