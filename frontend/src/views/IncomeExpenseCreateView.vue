@@ -161,8 +161,8 @@
 
 <script>
 import axios from "axios";
-import Tags from "@/assets/Tags.json"; // Adjust the path as necessary
-import Tags2 from "@/assets/Tags2.json"; // Adjust the path as necessary
+import mainCategories from "@/assets/Tags.json"; // Adjust the path as necessary
+import subCategories from "@/assets/Tags2.json"; // Adjust the path as necessary
 
 export default {
   name: "IncomeExpenseCreationView",
@@ -172,8 +172,8 @@ export default {
   data() {
     return {
       activeTab: "shortcuts",
-      tags: Tags, // Initialize tags from the imported JSON file
-      tags2: Tags2, // Initialize tags from the imported JSON file
+      tags: mainCategories, // Initialize tags from the imported JSON file
+      tags2: [], // Will be dynamically filled based on main category selection
       form: {
         type: "",
         value: "",
@@ -187,7 +187,24 @@ export default {
       },
     };
   },
+  watch: {
+    // Watch for changes in the selected main category to update subcategories
+    "form.tagId": function (newVal) {
+      this.updateSubcategories(newVal);
+    },
+  },
   methods: {
+    updateSubcategories(mainCategoryId) {
+      // Calculate start and end IDs for subcategories based on the selected main category ID
+      const startId = parseInt(mainCategoryId) * 3 - 2;
+      const endId = startId + 2;
+
+      // Filter subcategories based on calculated range
+      this.tags2 = subCategories.filter((subCat) => {
+        const subCatId = parseInt(subCat.id);
+        return subCatId >= startId && subCatId <= endId;
+      });
+    },
     getCurrentDate() {
       const today = new Date();
       return today.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
@@ -204,7 +221,7 @@ export default {
           "Please enter a valid decimal number with up to 5 decimal places."
         );
         // Optionally, reset the value or take other corrective action
-        // this.form.value = "";
+        this.form.value = "";
       }
     },
     async handleSubmit() {
