@@ -53,7 +53,11 @@
               </td>
               <td>
                 <select v-model="item.tagId2">
-                  <option v-for="tag2 in tags2" :key="tag2.id" :value="tag2.id">
+                  <option
+                    v-for="tag2 in dynamicTags2"
+                    :key="tag2.id"
+                    :value="tag2.id"
+                  >
                     {{ tag2.name }}
                   </option>
                 </select>
@@ -112,7 +116,20 @@ export default {
       }
     },
     toggleEdit(index) {
-      this.historyData[index].editing = !this.historyData[index].editing;
+      const item = this.historyData[index];
+      this.historyData[index].editing = !item.editing;
+      if (item.editing) {
+        // When we enter editing mode, update dynamic subcategories
+        this.updateDynamicSubcategories(item.tagId);
+      }
+    },
+    updateDynamicSubcategories(mainCategoryId) {
+      const startId = parseInt(mainCategoryId) * 3 - 2;
+      const endId = startId + 2;
+      this.dynamicTags2 = Tags2.filter((tag) => {
+        const tagId = parseInt(tag.id);
+        return tagId >= startId && tagId <= endId;
+      });
     },
     async saveTransaction(item, index) {
       try {
