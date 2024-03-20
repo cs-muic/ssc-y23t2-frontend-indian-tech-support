@@ -31,25 +31,30 @@
       <table class="recurring-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Type</th>
+            <th>Notes</th>
+            <th>Transaction Type</th>
             <th>Amount</th>
             <th>Primary Tag</th>
             <th>Secondary Tag</th>
-            <th>Notes</th>
-            <th>Date & Time</th>
+            <th>Date of Month Recurring</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in recurringData" :key="item.id">
-            <td>{{ item.name }}</td>
-            <td>{{ item.type }}</td>
-            <td>{{ item.amount }}</td>
-            <td>{{ item.tag }}</td>
-            <td>{{ item.tag2 }}</td>
+          <tr v-if="recurringData.length === 0">
+            <td colspan="7">No recurring transactions found.</td>
+          </tr>
+          <tr v-else v-for="item in recurringData" :key="item.id">
             <td>{{ item.notes }}</td>
-            <td>{{ item.timestamp }}</td>
+            <td>{{ item.transactionType }}</td>
+            <td>{{ item.value.toFixed(2) }}</td>
+            <td>
+              {{ tags.find((tag) => tag.id === item.tagId)?.name || "N/A" }}
+            </td>
+            <td>
+              {{ tags2.find((tag) => tag.id === item.tagId2)?.name || "N/A" }}
+            </td>
+            <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
               <button class="action-button edit">Edit</button>
               <button class="action-button delete">Delete</button>
@@ -212,7 +217,21 @@ export default {
       this.updateSubcategories(newVal);
     },
   },
+  created() {
+    this.fetchTransactionBlueprints();
+  },
   methods: {
+    fetchTransactionBlueprints() {
+      axios
+        .get("/api/transaction-blueprints/get-transaction-blueprints/recurring")
+        .then((response) => {
+          this.recurringData = response.data.transactionBlueprintsList;
+        })
+        .catch((error) => {
+          console.error("Error fetching transaction blueprints:", error);
+          alert("Failed to fetch transaction blueprints.");
+        });
+    },
     onRecurringChange() {
       if (this.form.recurring) {
         this.form.shortcut = false; // Turn off 'Shortcut' if 'Recurring' is checked
