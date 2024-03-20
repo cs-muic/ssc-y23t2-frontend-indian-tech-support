@@ -23,8 +23,19 @@
 
     <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'favorites'" class="top-half-content">
-      <button class="shortcut-button income">+ Income</button>
-      <button class="shortcut-button expenditure">− Expenditure</button>
+      <button
+        v-for="favorite in favoritesData"
+        :key="favorite.id"
+        class="shortcut-button income"
+        :style="{
+          backgroundImage: favorite.resourceURI
+            ? `url(${favorite.resourceURI})`
+            : '',
+        }"
+        @click="populateFormWithFavorite(favorite)"
+      >
+        {{ favorite.notes }}
+      </button>
     </div>
     <div v-if="activeTab === 'viewRecurring'" class="top-half-content">
       <!-- Recurring data table -->
@@ -198,6 +209,8 @@ export default {
       activeTab: "favorites",
       tags: mainCategories, // Initialize tags from the imported JSON file
       tags2: [], // Will be dynamically filled based on main category selection
+      favoritesData: [], // Define the property here
+      recurringData: [], // Define the property here
       form: {
         type: "",
         value: "",
@@ -219,8 +232,32 @@ export default {
   },
   created() {
     this.fetchTransactionBlueprints();
+    this.fetchFavorites();
   },
   methods: {
+    populateFormWithFavorite(favorite) {
+      // Populate form data with selected favorite
+      this.form.type = favorite.transactionType;
+      this.form.value = favorite.value.toString();
+      this.form.notes = favorite.notes;
+      this.form.tagId = favorite.tagId || null;
+      this.form.tagId2 = favorite.tagId2 || null;
+      this.form.recurring = favorite.dateofMonthRecurring !== null;
+      this.form.date = this.getCurrentDate();
+      this.form.time = this.getCurrentTime();
+    },
+    fetchFavorites() {
+      axios
+        .get("/api/transaction-blueprints/get-transaction-blueprints/favorites")
+        .then((response) => {
+          this.favoritesData = response.data.transactionBlueprintsList;
+          // Optionally, process the data if needed
+        })
+        .catch((error) => {
+          console.error("Error fetching favorites:", error);
+          alert("Failed to fetch favorites.");
+        });
+    },
     fetchTransactionBlueprints() {
       axios
         .get("/api/transaction-blueprints/get-transaction-blueprints/recurring")
