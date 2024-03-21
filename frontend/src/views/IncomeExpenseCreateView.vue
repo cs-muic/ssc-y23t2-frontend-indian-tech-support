@@ -22,7 +22,6 @@
     </div>
 
     <!-- Content for the top half of the page, changes based on active tab -->
-    <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'favorites'" class="top-half-content">
       <button
         v-for="favorite in favoritesData"
@@ -73,10 +72,18 @@
             <td>{{ item.transactionType }}</td>
             <td>{{ item.value.toFixed(2) }}</td>
             <td>
-              {{ tags.find((tag) => tag.id === item.tagId)?.name || "N/A" }}
+              {{
+                tagsSearch.find(
+                  (tag) => tag.id.toString() === item.tagId.toString()
+                )?.name || "N/A"
+              }}
             </td>
             <td>
-              {{ tags2.find((tag) => tag.id === item.tagId2)?.name || "N/A" }}
+              {{
+                tags2Search.find(
+                  (tag) => tag.id.toString() === item.tagId2.toString()
+                )?.name || "N/A"
+              }}
             </td>
             <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
@@ -222,6 +229,8 @@ export default {
       activeTab: "favorites",
       tags: mainCategories, // Initialize tags from the imported JSON file
       tags2: [], // Will be dynamically filled based on main category selection
+      tagsSearch: mainCategories,
+      tags2Search: subCategories,
       favoritesData: [], // Define the property here
       recurringData: [], // Define the property here
       form: {
