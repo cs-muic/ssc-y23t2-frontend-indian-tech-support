@@ -22,6 +22,7 @@
     </div>
 
     <!-- Content for the top half of the page, changes based on active tab -->
+    <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'favorites'" class="top-half-content">
       <button
         v-for="favorite in favoritesData"
@@ -37,10 +38,18 @@
             : '',
         }"
         @click="populateFormWithFavorite(favorite)"
+        style="position: relative"
       >
         {{ favorite.notes }}
+        <span
+          class="delete-cross"
+          @click.stop="deleteFavorite(favorite.id)"
+          style="position: absolute; top: 0; right: 0; cursor: pointer"
+          >✕</span
+        >
       </button>
     </div>
+
     <div v-if="activeTab === 'viewRecurring'" class="top-half-content">
       <!-- Recurring data table -->
       <table class="recurring-table">
@@ -239,6 +248,18 @@ export default {
     this.fetchFavorites();
   },
   methods: {
+    deleteFavorite(id) {
+      // Insert your API call here to handle deletion
+      console.log("Deleting favorite with ID:", id);
+      // axios
+      //   .post("/api/transaction-blueprints/delete-favorite")
+      //   .then((response) => {
+      //     // Handle successful deletion, e.g., update the UI accordingly
+      //   })
+      //   .catch((error) => {
+      //     // Handle any errors
+      //   });
+    },
     populateFormWithFavorite(favorite) {
       // Populate form data with selected favorite
       this.form.type = favorite.transactionType;
@@ -391,6 +412,7 @@ export default {
 }
 
 .shortcut-button {
+  position: relative; /* this ensures that the .delete-cross is positioned relative to the button */
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -415,6 +437,22 @@ export default {
   border-color: red;
   color: white;
   background-color: red;
+}
+
+.delete-cross {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  padding: 2px 5px; /* Slightly larger padding for easier clicking */
+  border-radius: 0 0 0 5px; /* Rounded corner on the bottom left */
+  /* Additional styling as needed */
+}
+
+.shortcut-button:hover .delete-cross {
+  display: inline; /* or 'visibility: visible;' to match your initial hidden state */
 }
 
 .shortcut-button:hover {
