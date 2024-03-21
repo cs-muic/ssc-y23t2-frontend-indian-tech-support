@@ -128,8 +128,11 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
-          <Bar :data="chartData" />
-          <p>{{ graphData }}</p>
+          <Bar :data="chartData" :options="chartOptions" />
+          <h1>{{ graphData }}</h1>
+          <h1>{{ graphLabels }}</h1>
+          <h1>{{ graphValues }}</h1>
+
           <!-- Graph content... -->
         </div>
       </div>
@@ -142,6 +145,25 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import NavbarComponent from "@/components/NavbarComponent.vue";
+import { Bar } from "vue-chartjs";
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+} from "chart.js";
+
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale
+);
 
 const currentDate = new Date();
 const startOfYear = new Date(currentDate.getFullYear(), 0, 2);
@@ -153,8 +175,9 @@ const chartType = ref("line");
 const timeframe = ref("Day");
 const transactionType = ref("EXPENDITURE");
 const showFilters = ref(false);
-// eslint-disable-next-line no-import-assign,no-redeclare
 const graphData = ref(null);
+const graphLabels = ref([]);
+const graphValues = ref([]);
 
 async function fetchGraphData(startDate, endDate, transactionType, timeframe) {
   try {
@@ -180,7 +203,26 @@ const createChart = async () => {
     transactionType.value,
     timeframe.value
   );
+
+  graphLabels.value = graphData.value.data.map((item) => item[0]);
+  graphValues.value = graphData.value.data.map((item) => item[1]);
 };
+
+const chartData = computed(() => ({
+  labels: graphLabels.value,
+  datasets: [
+    {
+      label: "Data One",
+      backgroundColor: "#f87979",
+      data: graphValues.value,
+    },
+  ],
+}));
+
+const chartOptions = ref({
+  responsive: true,
+  maintainAspectRatio: false,
+});
 
 const incomeExpense = ref("Income");
 const currentMonth = new Date().toLocaleString("default", { month: "long" });
@@ -270,56 +312,6 @@ onMounted(async () => {
 
 watch([selectedMonth, incomeExpense], fetchAmount, { immediate: true });
 watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
-</script>
-<script>
-import { Bar } from "vue-chartjs";
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-} from "chart.js";
-
-ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale
-);
-
-export default {
-  name: "BarChart",
-  components: { Bar },
-  setup() {
-    // Import graphData from the setup script
-
-    const { graphData } = this.setup();
-
-    return {
-      graphData,
-    };
-  },
-  data() {
-    return {
-      chartData: {
-        labels: ["1", "2"], //this.graphData.value.data.map((item) => item[0]),
-        datasets: [
-          {
-            data: ["1", "2"], //this.graphData.value.data.map((item) => item[1]),
-          },
-        ],
-      },
-      chartOptions: {
-        responsive: true,
-      },
-    };
-  },
-};
 </script>
 <style scoped>
 .navbar {
