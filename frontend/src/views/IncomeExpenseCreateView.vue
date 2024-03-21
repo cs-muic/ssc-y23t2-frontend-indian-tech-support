@@ -26,7 +26,11 @@
       <button
         v-for="favorite in favoritesData"
         :key="favorite.id"
-        class="shortcut-button income"
+        :class="{
+          'shortcut-button': true,
+          income: favorite.transactionType === 'INCOME',
+          expenditure: favorite.transactionType === 'EXPENDITURE',
+        }"
         :style="{
           backgroundImage: favorite.resourceURI
             ? `url(${favorite.resourceURI})`
@@ -97,7 +101,7 @@
               v-model="form.shortcut"
               @change="onShortcutChange"
             />
-            <span class="checkbox-label">Create as Shortcut</span>
+            <span class="checkbox-label">Create as Favorite</span>
           </label>
         </div>
 
