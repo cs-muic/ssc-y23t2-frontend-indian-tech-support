@@ -138,7 +138,7 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group" v-if="!form.recurring">
+          <div class="form-group" v-if="!form.recurring && !form.shortcut">
             <label for="date">Date</label>
             <input
               type="date"
@@ -149,7 +149,7 @@
             />
           </div>
 
-          <div class="form-group" v-if="!form.recurring">
+          <div class="form-group" v-if="!form.recurring && !form.shortcut">
             <label for="time">Time</label>
             <input
               type="time"
@@ -234,6 +234,7 @@ export default {
         tagId2: "",
         recurring: false,
         shortcut: false,
+        dateofMonthRecurring: "",
       },
     };
   },
@@ -248,17 +249,22 @@ export default {
     this.fetchFavorites();
   },
   methods: {
-    deleteFavorite(id) {
-      // Insert your API call here to handle deletion
-      console.log("Deleting favorite with ID:", id);
-      // axios
-      //   .post("/api/transaction-blueprints/delete-favorite")
-      //   .then((response) => {
-      //     // Handle successful deletion, e.g., update the UI accordingly
-      //   })
-      //   .catch((error) => {
-      //     // Handle any errors
-      //   });
+    async deleteFavorite(id) {
+      try {
+        // Make the API call to delete the favorite by ID
+        await axios.post("/api/transaction-blueprints/delete-favorite", null, {
+          params: {
+            id: id,
+          },
+        });
+        // Remove the deleted favorite from the favoritesData array
+        this.favoritesData = this.favoritesData.filter(
+          (favorite) => favorite.id !== id
+        );
+      } catch (error) {
+        console.error("Error deleting favorite:", error);
+        alert("Failed to delete favorite.");
+      }
     },
     populateFormWithFavorite(favorite) {
       // Populate form data with selected favorite
@@ -332,7 +338,6 @@ export default {
         alert(
           "Please enter a valid decimal number with up to 5 decimal places."
         );
-        // Optionally, reset the value or take other corrective action
         this.form.value = "";
       }
     },
@@ -340,7 +345,7 @@ export default {
       // Combine date and time into timestamp
       const timestamp = `${this.form.date}T${this.form.time}:00.000`;
 
-      const formData = {
+      let formData = {
         ...this.form,
         timestamp, // Use the combined timestamp
       };
@@ -349,22 +354,78 @@ export default {
       delete formData.date;
       delete formData.time;
 
-      // eslint-disable-next-line no-unused-vars
-      const response = axios({
-        method: "post",
-        url: "/api/createTransactions",
-        data: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-        .then(() => {
-          // Success handling
-          this.$router.push("/history");
-        })
-        .catch((error) => {
-          // Error handling
-          console.error("Submission error:", error);
-          alert("An error occurred. Please try again."); // Placeholder for error handling
-        });
+      if (this.form.recurring || this.form.shortcut) {
+        formData.shortcutType = this.form.recurring ? "RECURRING" : "FAVORITES";
+      }
+
+      console.log("Form data being submitted:", formData);
+
+      try {
+        // Check if the transaction is recurring or a favorite
+        if (this.form.recurring || this.form.shortcut) {
+          axios({
+            method: "post",
+            url: "/api/transaction-blueprints/post-transaction-blueprints",
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+            .then((response) => {
+              if (response.data) {
+                this.activeTab = this.form.recurring
+                  ? "viewRecurring"
+                  : "favorites";
+                alert(
+                  "Submission for recurring/favorite transaction successful."
+                );
+                this.clearForm(); // Clear form after successful submission
+                this.fetchTransactionBlueprints(); // Update recurring data
+                this.fetchFavorites(); // Update favorites data
+              } else {
+                alert("Failed to update transaction. Please try again.");
+              }
+            })
+            .catch((error) => {
+              // Handle errors
+              console.error("Error submitting transaction:", error);
+              alert("Error submitting transaction. Please try again.");
+            });
+        } else {
+          // Proceed with the normal submission if not recurring/favorite
+          axios({
+            method: "post",
+            url: "/api/createTransactions",
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+            .then(() => {
+              // Success handling
+              this.$router.push("/history");
+            })
+            .catch((error) => {
+              // Error handling
+              console.error("Submission error:", error);
+              alert("An error occurred. Please try again."); // Placeholder for error handling
+            });
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        alert("An error occurred. Please try again.");
+      }
+    },
+    clearForm() {
+      // Reset form fields to their initial state
+      this.form = {
+        type: "",
+        value: "",
+        notes: "",
+        date: this.getCurrentDate(),
+        time: this.getCurrentTime(),
+        tagId: "",
+        tagId2: "",
+        recurring: false,
+        shortcut: false,
+        dateofMonthRecurring: "",
+      };
     },
   },
 };
