@@ -31,7 +31,13 @@
           <!--          represented with a bar -->
           <ul>
             <li v-for="(value, key) in tagStats" :key="key">
-              Tag: {{ value[0] }}, Amount Spent: {{ value[1] }}
+              {{ findTag(value[0]) }}, ${{ value[1] }}
+              <div class="bar-container">
+                <div
+                  class="bar"
+                  :style="{ width: (value[1] / totalAmount) * 100 + '%' }"
+                ></div>
+              </div>
             </li>
           </ul>
         </div>
@@ -52,7 +58,7 @@
             </label>
             <label>
               Chart Type:
-              <select v-model="chartType">
+              <select v-model="selectedChartType">
                 <option value="bar">Bar Chart</option>
                 <option value="line">Line Chart</option>
               </select>
@@ -67,18 +73,26 @@
               </select>
             </label>
             <label>
-              Tag 1:
+              Primary Tag:
               <select v-model="selectedTag1">
-                <option v-for="(value, key) in tags" :key="key" :value="key">
-                  {{ key }}
+                <option
+                  v-for="(tag, index) in primaryTags"
+                  :key="index"
+                  :value="tag.id"
+                >
+                  {{ tag.name }}
                 </option>
               </select>
             </label>
             <label>
-              Tag 2:
+              Secondary Tag:
               <select v-model="selectedTag2">
-                <option v-for="(value, key) in tags" :key="key" :value="key">
-                  {{ key }}
+                <option
+                  v-for="(tag, index) in secondaryTags"
+                  :key="index"
+                  :value="tag.id"
+                >
+                  {{ tag.name }}
                 </option>
               </select>
             </label>
@@ -128,7 +142,12 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
-          <Bar :data="chartData" :options="chartOptions" />
+          <Bar
+            v-if="chartType === 'bar'"
+            :data="chartData"
+            :options="chartOptions"
+          />
+          <Line v-else :data="chartData" :options="chartOptions" />
           <!-- Graph content... -->
         </div>
       </div>
@@ -141,7 +160,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import NavbarComponent from "@/components/NavbarComponent.vue";
-import { Bar } from "vue-chartjs";
+import { Bar, Line } from "vue-chartjs";
 import {
   Chart as ChartJS,
   Title,
@@ -170,12 +189,15 @@ import {
   eachYearOfInterval,
   format,
 } from "date-fns";
+import primaryTags from "@/assets/Tags.json";
+import secondaryTags from "@/assets/Tags2.json";
 
 const currentDate = new Date();
 const startofYear = new Date(currentDate.getFullYear(), 0, 2);
 const startDate = ref(startofYear.toISOString().split("T")[0]);
 const endDate = ref(currentDate.toISOString().split("T")[0]);
-const chartType = ref("line");
+const chartType = ref("bar");
+const selectedChartType = ref("bar");
 // const selectedTag1 = ref("None");
 // const selectedTag2 = ref("None");
 const timeframe = ref("Day");
@@ -201,6 +223,11 @@ async function fetchGraphData(startDate, endDate, transactionType, timeframe) {
     return error.response.data;
   }
 }
+
+const findTag = (id) => {
+  const tag = primaryTags.find((tag) => tag.id === id.toString());
+  return tag ? tag.name : "Tag not found";
+};
 
 const createChart = async () => {
   graphData.value = await fetchGraphData(
@@ -237,6 +264,8 @@ const createChart = async () => {
     const item = graphData.value.data.find((item) => item[0] === label);
     return item ? item[1] : 0;
   });
+
+  chartType.value = selectedChartType.value;
 };
 
 const chartData = computed(() => ({
@@ -464,5 +493,15 @@ select {
   background-color: #ffffff;
   border: 1px solid #000000;
   border-radius: 5px;
+}
+
+.bar-container {
+  background-color: #ccc;
+  height: 20px;
+}
+
+.bar {
+  background-color: #4caf50;
+  height: 100%;
 }
 </style>
