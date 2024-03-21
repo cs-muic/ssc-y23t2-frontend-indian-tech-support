@@ -168,7 +168,11 @@
 
           <div class="form-group" v-if="form.recurring">
             <label for="dayOfMonth">Day of Month</label>
-            <select v-model="form.dayOfMonth" class="form-control" required>
+            <select
+              v-model="form.dateofMonthRecurring"
+              class="form-control"
+              required
+            >
               <option value="" disabled>Select Day</option>
               <option v-for="day in 31" :value="day" :key="day">
                 {{ day }}
