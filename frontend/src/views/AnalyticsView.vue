@@ -129,10 +129,6 @@
         <div class="graph">
           <h2>Graph</h2>
           <Bar :data="chartData" :options="chartOptions" />
-          <h1>{{ graphData }}</h1>
-          <h1>{{ graphLabels }}</h1>
-          <h1>{{ graphValues }}</h1>
-
           <!-- Graph content... -->
         </div>
       </div>
@@ -164,10 +160,20 @@ ChartJS.register(
   CategoryScale,
   LinearScale
 );
+import {
+  eachDayOfInterval,
+  startOfMonth,
+  endOfMonth,
+  eachMonthOfInterval,
+  startOfYear,
+  endOfYear,
+  eachYearOfInterval,
+  format,
+} from "date-fns";
 
 const currentDate = new Date();
-const startOfYear = new Date(currentDate.getFullYear(), 0, 2);
-const startDate = ref(startOfYear.toISOString().split("T")[0]);
+const startofYear = new Date(currentDate.getFullYear(), 0, 2);
+const startDate = ref(startofYear.toISOString().split("T")[0]);
 const endDate = ref(currentDate.toISOString().split("T")[0]);
 const chartType = ref("line");
 // const selectedTag1 = ref("None");
@@ -204,8 +210,33 @@ const createChart = async () => {
     timeframe.value
   );
 
-  graphLabels.value = graphData.value.data.map((item) => item[0]);
-  graphValues.value = graphData.value.data.map((item) => item[1]);
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+  let labels = [];
+
+  if (timeframe.value === "Day") {
+    const days = eachDayOfInterval({ start, end });
+    labels = days.map((day) => format(day, "yyyy-MM-dd"));
+  } else if (timeframe.value === "Month") {
+    const months = eachMonthOfInterval({
+      start: startOfMonth(start),
+      end: endOfMonth(end),
+    });
+    labels = months.map((month) => format(month, "yyyy-MM"));
+  } else if (timeframe.value === "Year") {
+    const years = eachYearOfInterval({
+      start: startOfYear(start),
+      end: endOfYear(end),
+    });
+    labels = years.map((year) => format(year, "yyyy"));
+  }
+
+  graphLabels.value = labels;
+
+  graphValues.value = graphLabels.value.map((label) => {
+    const item = graphData.value.data.find((item) => item[0] === label);
+    return item ? item[1] : 0;
+  });
 };
 
 const chartData = computed(() => ({
