@@ -5,8 +5,13 @@
     </nav>
 
     <div class="main-content">
+      <!--        <BudgetDoughnutComponent />-->
       <!--      Sidebar for viewing income/expenditure by category-->
       <div class="sidebar">
+        <div class="donut">
+          <!--          Displays the donut chart-->
+          <BudgetDoughnutComponent />
+        </div>
         <div class="amount">
           <h2>Amount:</h2>
           <h2>{{ totalAmount }}</h2>
@@ -210,6 +215,7 @@ import {
 } from "date-fns";
 import primaryTags from "@/assets/Tags.json";
 import secondaryTags from "@/assets/Tags2.json";
+import BudgetDoughnutComponent from "@/components/BudgetDoughnutComponent.vue";
 
 const currentDate = new Date();
 const startofYear = new Date(currentDate.getFullYear(), 0, 2);
@@ -553,6 +559,11 @@ watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
 
 .amount {
   height: 100px; /* Adjust as needed */
+  background-color: #ffffff; /* Placeholder color */
+}
+
+.donut {
+  height: 200px; /* Adjust as needed */
   background-color: #ffffff; /* Placeholder color */
 }
 
