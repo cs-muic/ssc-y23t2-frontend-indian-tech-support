@@ -3,8 +3,68 @@
     <nav class="navbar">
       <NavbarComponent />
     </nav>
+    <!--    &lt;!&ndash; Filters section &ndash;&gt;-->
+    <!--    <div class="filters">-->
+    <!--      <h2>Filters</h2>-->
+    <!--      <div class="top-row">-->
+    <!--        <label>-->
+    <!--          Start Date:-->
+    <!--          <input type="date" v-model="startDate" placeholder="Start Date" />-->
+    <!--        </label>-->
+    <!--        <label>-->
+    <!--          End Date:-->
+    <!--          <input type="date" v-model="endDate" placeholder="End Date" />-->
+    <!--        </label>-->
+    <!--        <label>-->
+    <!--          Chart Type:-->
+    <!--          <select v-model="chartType">-->
+    <!--            <option value="bar">Bar Chart</option>-->
+    <!--            <option value="line">Line Chart</option>-->
+    <!--          </select>-->
+    <!--        </label>-->
+    <!--      </div>-->
+    <!--      <div class="bottom-row">-->
+    <!--        <label>-->
+    <!--          Transaction Type:-->
+    <!--          <select v-model="transactionType">-->
+    <!--            <option value="EXPENDITURE">Expenses</option>-->
+    <!--            <option value="INCOME">Income</option>-->
+    <!--          </select>-->
+    <!--        </label>-->
+    <!--        <label>-->
+    <!--          Tag 1:-->
+    <!--          <select v-model="selectedTag1">-->
+    <!--            <option v-for="(value, key) in tags" :key="key" :value="key">-->
+    <!--              {{ key }}-->
+    <!--            </option>-->
+    <!--          </select>-->
+    <!--        </label>-->
+    <!--        <label>-->
+    <!--          Tag 2:-->
+    <!--          <select v-model="selectedTag2">-->
+    <!--            <option v-for="(value, key) in tags" :key="key" :value="key">-->
+    <!--              {{ key }}-->
+    <!--            </option>-->
+    <!--          </select>-->
+    <!--        </label>-->
+    <!--        <label>-->
+    <!--          Timeframe:-->
+    <!--          <select v-model="timeframe">-->
+    <!--            <option value="Day">Day</option>-->
+    <!--            <option value="Month">Month</option>-->
+    <!--            <option value="Year">Year</option>-->
+    <!--          </select>-->
+    <!--        </label>-->
+    <!--      </div>-->
+    <!--      <div class="third-row">-->
+    <!--        <button @click="toggleCompare">{{ compareText }}</button>-->
+    <!--        <button @click="createChart">Create</button>-->
+    <!--      </div>-->
+    <!--      &lt;!&ndash; Filters content... &ndash;&gt;-->
+    <!--    </div>-->
+
     <!-- Recurring data table -->
-    <div class="container-hist">
+    <div class="container">
       <table class="recurring-table">
         <thead>
           <tr>
@@ -27,7 +87,7 @@
               <td>{{ getTagNameById(item.tagId) }}</td>
               <td>{{ getTag2NameById(item.tagId2) }}</td>
               <td>{{ item.notes }}</td>
-              <td>{{ item.timestamp }}</td>
+              <td>{{ convertDate(item.timestamp) }}</td>
               <td>
                 <button class="action-button edit" @click="toggleEdit(index)">
                   Edit
@@ -63,7 +123,45 @@
                 </select>
               </td>
               <td><input v-model="item.notes" /></td>
-              <td><input v-model="item.timestamp" /></td>
+              <td>
+                <!--                <input v-model="item.timestamp" />-->
+                <!--                <div class="form-group">-->
+                <!--                  <label for="date">Date </label>-->
+                <!--                  <input-->
+                <!--                    type="date"-->
+                <!--                    :value="getDate(item.timestamp)"-->
+                <!--                    class="form-control"-->
+                <!--                    required-->
+                <!--                  />-->
+                <!--                </div>-->
+                <!--                <div class="form-group">-->
+                <!--                  <label for="time">Time </label>-->
+                <!--                  <input-->
+                <!--                    type="time"-->
+                <!--                    :value="getTime(item.timestamp)"-->
+                <!--                    class="form-control"-->
+                <!--                  />-->
+                <!--                </div>-->
+                <div class="form-group">
+                  <label for="date">Date </label>
+                  <input
+                    type="date"
+                    :value="getDate(item.timestamp)"
+                    class="form-control"
+                    @input="updateDate($event.target.value)"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="time">Time </label>
+                  <input
+                    type="time"
+                    :value="getTime(item.timestamp)"
+                    class="form-control"
+                    @input="updateTime($event.target.value)"
+                  />
+                </div>
+              </td>
               <td>
                 <button
                   class="action-button save"
@@ -88,22 +186,77 @@ import axios from "axios";
 import NavbarComponent from "@/components/NavbarComponent.vue";
 import Tags from "@/assets/Tags.json";
 import Tags2 from "@/assets/Tags2.json";
+// eslint-disable-next-line no-unused-vars
+import { ref } from "vue";
 
+const currentDate = new Date();
+const startOfYear = new Date(currentDate.getFullYear(), 0, 2);
+// eslint-disable-next-line no-unused-vars
+const startDate = ref(startOfYear.toISOString().split("T")[0]);
+// eslint-disable-next-line no-unused-vars
+const endDate = ref(currentDate.toISOString().split("T")[0]);
+// eslint-disable-next-line no-unused-vars
+const timeframe = ref("Day");
+// eslint-disable-next-line no-unused-vars
+const transactionType = ref("EXPENDITURE");
+// eslint-disable-next-line no-unused-vars
+const showFilters = ref(false);
+// eslint-disable-next-line no-import-assign,no-redeclare
+// eslint-disable-next-line no-unused-vars
+const graphData = ref(null);
 export default {
   components: {
     NavbarComponent,
   },
   data() {
     return {
+      globalEditing: false,
       historyData: [],
       tags: Tags,
       tags2: Tags2,
+      form: {
+        date: "0000-00-00", // Initialize with current date
+        time: "00:00:00.000", // Initialize with current time
+      },
     };
   },
   mounted() {
     this.fetchTransactionData();
   },
   methods: {
+    populateFormDate(dateString) {
+      console.log("dateString: " + dateString);
+      // this.form.date = this.getDate(dateString);
+      // this.form.time = this.getTime(dateString);
+      // Extract date components
+      const dateParts = dateString.split("T")[0].split("-");
+      const year = dateParts[0];
+      const month = dateParts[1];
+      const day = dateParts[2];
+      this.form.date = year + "-" + month + "-" + day;
+
+      // Extract time components
+      const timeParts = dateString.split("T")[1].split(".")[0].split(":");
+      const hour = timeParts[0];
+      const minute = timeParts[1];
+      this.form.time = hour + ":" + minute + ":00.000";
+    },
+    updateDate(newDate) {
+      // Update the date value in the item object
+      this.form.date = newDate;
+    },
+    updateTime(newTime) {
+      // Update the time value in the item object
+      this.form.time = newTime + ":00.000";
+    },
+    getDate(timestamp) {
+      const stamp = new Date(timestamp);
+      return stamp.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
+    },
+    getTime(timestamp) {
+      const stamp = new Date(timestamp);
+      return stamp.toTimeString().split(" ")[0].slice(0, 5); // Formats the time as HH:MM
+    },
     async fetchTransactionData() {
       try {
         const response = await axios.get("/api/history");
@@ -115,12 +268,21 @@ export default {
         console.error("Error fetching transaction data:", error);
       }
     },
+    convertDate(timeStamp) {
+      return new Date(timeStamp);
+    },
     toggleEdit(index) {
-      const item = this.historyData[index];
-      this.historyData[index].editing = !item.editing;
-      if (item.editing) {
-        // When we enter editing mode, update dynamic subcategories
-        this.updateDynamicSubcategories(item.tagId);
+      if (!this.globalEditing) {
+        const item = this.historyData[index];
+        this.historyData[index].editing = !item.editing;
+        if (item.editing) {
+          // When we enter editing mode, update dynamic subcategories
+          this.updateDynamicSubcategories(item.tagId);
+          this.populateFormDate(item.timestamp);
+        }
+      } else {
+        this.globalEditing = false;
+        this.historyData[index].editing = false;
       }
     },
     updateDynamicSubcategories(mainCategoryId) {
@@ -131,9 +293,54 @@ export default {
         return tagId >= startId && tagId <= endId;
       });
     },
+    formatDateToISOString(date) {
+      console.log("format: " + date);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      const second = String(date.getSeconds()).padStart(2, "0");
+      const millisecond = String(date.getMilliseconds()).padStart(3, "0");
+      const timezoneOffset = date.getTimezoneOffset();
+      const timezoneOffsetHours = Math.abs(Math.floor(timezoneOffset / 60))
+        .toString()
+        .padStart(2, "0");
+      const timezoneOffsetMinutes = Math.abs(timezoneOffset % 60)
+        .toString()
+        .padStart(2, "0");
+      const timezoneSign = timezoneOffset >= 0 ? "-" : "+";
+
+      return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${timezoneSign}${timezoneOffsetHours}:${timezoneOffsetMinutes}`;
+    },
     async saveTransaction(item, index) {
       try {
         var bodyFormData = new FormData();
+        console.log(
+          "Combined: " + Date.parse(`${this.form.date}T${this.form.time}`)
+        );
+        var outputTimeStamp = this.formatDateToISOString(
+          new Date(`${this.form.date}T${this.form.time}`)
+        );
+        console.log("Form date" + this.form.date);
+        console.log("Form time" + this.form.time);
+        // if (this.form.date) {
+        //   console.log("Cq");
+        //   outputTimeStamp = this.formatDateToISOString(
+        //     new Date(`${this.getDate(item.date)}T${this.form.time}`)
+        //   );
+        // }
+        // } else if (this.form.time.isNan) {
+        //   console.log("B");
+        //   outputTimeStamp = this.formatDateToISOString(
+        //     new Date(`${this.form.date}T${this.getTime(item.date)}`)
+        //   );
+        // }
+        // if (this.form.date.isNan && this.form.time.isNan) {
+        //   console.log("A");
+        //   outputTimeStamp = this.historyData[index].timestamp;
+        // }
+        bodyFormData.append("timestamp", outputTimeStamp);
         bodyFormData.append("id", item.id);
         bodyFormData.append("editType", "EDIT");
         bodyFormData.append("tagId", item.tagId);
@@ -141,9 +348,9 @@ export default {
         bodyFormData.append("type", item.type);
         bodyFormData.append("notes", item.notes);
         bodyFormData.append("value", item.value);
-        bodyFormData.append("timestamp", item.timestamp);
 
-        const response = await axios({
+        console.log("outputTimeStamp: " + outputTimeStamp);
+        await axios({
           method: "post",
           url: "/api/history",
           data: bodyFormData,
@@ -160,8 +367,9 @@ export default {
           });
 
         // Assuming the response contains updated transaction data
-        this.historyData[index] = response.data.transactions;
+        // this.historyData = response.data.transactions;
         this.historyData[index].editing = false;
+        this.globalEditing = false;
       } catch (error) {
         console.error("Error saving transaction:", error);
       }
@@ -202,10 +410,10 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 /* General container styling for refined look */
-.container-hist {
-  width: 90%;
+.container {
+  width: 90% !important;
   margin: 0 auto;
   padding: 20px;
   background: #f8f9fa; /* Subtle background color */
