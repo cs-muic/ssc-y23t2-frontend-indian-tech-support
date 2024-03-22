@@ -118,15 +118,15 @@
           <div class="bottom-row">
             <label>
               Transaction Type:
-              <select v-model="transactionType">
+              <select v-model="compareTransactionType">
                 <option value="EXPENDITURE">Expenses</option>
                 <option value="INCOME">Income</option>
               </select>
             </label>
             <label>
               Primary Tag:
-              <select v-model="selectedCompareTag1">
-                <option value="None" selected>None</option>
+              <select v-model="compareTag1">
+                <option value="0" selected>- None -</option>
                 <option
                   v-for="(tag, index) in primaryTags"
                   :key="index"
@@ -138,8 +138,8 @@
             </label>
             <label>
               Secondary Tag:
-              <select v-model="selectedCompareTag2">
-                <option value="None" selected>None</option>
+              <select v-model="compareTag2">
+                <option value="0" selected>- None -</option>
                 <option
                   v-for="(tag, index) in secondaryTags"
                   :key="index"
@@ -219,12 +219,18 @@ const chartType = ref("bar");
 const selectedChartType = ref("bar");
 const selectedTag1 = ref("0");
 const selectedTag2 = ref("0");
+const compareTag1 = ref("0");
+const compareTag2 = ref("0");
 const timeframe = ref("Day");
 const transactionType = ref("EXPENDITURE");
+const compareTransactionType = ref("EXPENDITURE");
 const showFilters = ref(false);
 const graphData = ref(null);
+const graphData2 = ref(null);
 const graphLabels = ref([]);
 const graphValues = ref([]);
+const graphValues2 = ref([]);
+const compareText = ref("+ Compare");
 
 async function fetchGraphData(startDate, endDate, transactionType, timeframe) {
   try {
@@ -322,18 +328,56 @@ const createChart = async () => {
   });
 
   chartType.value = selectedChartType.value;
+
+  if (compareText.value === "- Compare") {
+    if (compareTag1.value === "0" && compareTag2.value === "0") {
+      graphData2.value = await fetchGraphData(
+        startDate.value,
+        endDate.value,
+        compareTransactionType.value,
+        timeframe.value
+      );
+    } else {
+      graphData2.value = await fetchGraphDataWithTags(
+        startDate.value,
+        endDate.value,
+        compareTransactionType.value,
+        timeframe.value,
+        compareTag1.value,
+        compareTag2.value
+      );
+    }
+    graphValues2.value = graphLabels.value.map((label) => {
+      const item = graphData2.value.data.find((item) => item[0] === label);
+      return item ? item[1] : 0;
+    });
+  } else {
+    graphValues2.value = [];
+  }
 };
 
-const barChartData = computed(() => ({
-  labels: graphLabels.value,
-  datasets: [
+const barChartData = computed(() => {
+  let datasets = [
     {
-      label: "Amount",
+      label: "Amount 1",
       backgroundColor: "#4605ea",
       data: graphValues.value,
     },
-  ],
-}));
+  ];
+
+  if (graphValues2.value.length !== 0) {
+    datasets.push({
+      label: "Amount 2",
+      backgroundColor: "#ff7400",
+      data: graphValues2.value,
+    });
+  }
+
+  return {
+    labels: graphLabels.value,
+    datasets: datasets,
+  };
+});
 
 const barChartOptions = ref({
   responsive: true,
@@ -423,8 +467,6 @@ const toggleIncomeExpense = () => {
 const incomeExpenseMapped = computed(() => {
   return incomeExpense.value === "Income" ? "INCOME" : "EXPENDITURE";
 });
-
-const compareText = ref("+ Compare");
 
 function mapMonthsToNumbers(month) {
   const months = [
