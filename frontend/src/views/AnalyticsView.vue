@@ -154,7 +154,6 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
-          <h1>{{ graphData }}</h1>
           <Bar
             v-if="chartType === 'bar'"
             :data="chartData"
