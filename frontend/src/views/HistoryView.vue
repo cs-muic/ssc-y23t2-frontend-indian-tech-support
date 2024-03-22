@@ -4,7 +4,7 @@
       <NavbarComponent />
     </nav>
     <!-- Recurring data table -->
-    <div class="container">
+    <div class="container-hist">
       <table class="recurring-table">
         <thead>
           <tr>
@@ -204,8 +204,8 @@ export default {
 
 <style scoped>
 /* General container styling for refined look */
-.container {
-  width: 90% !important;
+.container-hist {
+  width: 90%;
   margin: 0 auto;
   padding: 20px;
   background: #f8f9fa; /* Subtle background color */
