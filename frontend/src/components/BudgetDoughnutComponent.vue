@@ -36,8 +36,9 @@ const data = {
   labels: ["VueJs", "EmberJs"],
   datasets: [
     {
-      backgroundColor: ["#41B883", "#E46651"],
+      backgroundColor: ["#41B883", "#cb3054"],
       data: [40, 20],
+      color: "#ffffff",
     },
   ],
 };
@@ -45,11 +46,16 @@ const data = {
 const options = {
   responsive: true,
   maintainAspectRatio: false,
+  plugins: {
+    datalabels: {
+      color: "#ffffff",
+    },
+  },
 };
 </script>
 <style scoped>
 .doughnut-container {
-  max-width: 300px; /* Adjust as needed */
+  max-width: 350px; /* Adjust as needed */
   max-height: 200px; /* Adjust as needed */
 }
 </style>
