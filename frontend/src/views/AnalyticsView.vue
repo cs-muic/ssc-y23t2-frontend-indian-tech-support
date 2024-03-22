@@ -154,12 +154,12 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
-          <Bar
-            v-if="chartType === 'bar'"
-            :data="chartData"
-            :options="chartOptions"
+          <Line
+            v-if="chartType === 'line'"
+            :data="lineChartData"
+            :options="lineChartOptions"
           />
-          <Line v-else :data="chartData" :options="chartOptions" />
+          <Bar v-else :data="barChartData" :options="barChartOptions" />
           <!-- Graph content... -->
         </div>
       </div>
@@ -173,23 +173,30 @@ import { computed, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import NavbarComponent from "@/components/NavbarComponent.vue";
 import { Bar, Line } from "vue-chartjs";
+
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
   Chart as ChartJS,
   Title,
   Tooltip,
   Legend,
+  LineElement,
+  LinearScale,
   BarElement,
   CategoryScale,
-  LinearScale,
+  PointElement,
 } from "chart.js";
 
 ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  LineElement,
   BarElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  ChartDataLabels,
+  PointElement
 );
 import {
   eachDayOfInterval,
@@ -268,7 +275,7 @@ const findTag = (id) => {
 };
 
 const createChart = async () => {
-  if (selectedTag1.value === "None" && selectedTag2.value === "None") {
+  if (selectedTag1.value === "0" && selectedTag2.value === "0") {
     graphData.value = await fetchGraphData(
       startDate.value,
       endDate.value,
@@ -317,21 +324,78 @@ const createChart = async () => {
   chartType.value = selectedChartType.value;
 };
 
-const chartData = computed(() => ({
+const barChartData = computed(() => ({
   labels: graphLabels.value,
   datasets: [
     {
-      label: "Data One",
-      backgroundColor: "#f87979",
+      label: "Amount",
+      backgroundColor: "#4605ea",
       data: graphValues.value,
     },
   ],
 }));
 
-const chartOptions = ref({
+const barChartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
+  plugins: {
+    datalabels: {
+      color: "#ffffff",
+      display: function (context) {
+        return context.dataset.data[context.dataIndex] > 0;
+      },
+      font: {
+        weight: "bold",
+      },
+      formatter: Math.round,
+    },
+  },
 });
+
+// const lineChartData = computed(() => ({
+//   labels: graphLabels.value,
+//   datasets: [
+//     {
+//       label: "Data One",
+//       borderColor: "#4605ea",
+//       data: graphValues.value,
+//       fill: false,
+//     },
+//   ],
+// }));
+const lineChartData = {
+  labels: ["January", "February", "March", "April", "May", "June", "July"],
+  datasets: [
+    {
+      label: "Data One",
+      borderColor: "#4605ea",
+      data: [40, 39, 10, 40, 39, 80, 40],
+      fill: true,
+    },
+  ],
+};
+
+// const lineChartOptions = ref({
+//   responsive: true,
+//   maintainAspectRatio: false,
+//   plugins: {
+//     datalabels: {
+//       color: "#FFFFFF",
+//       display: function (context) {
+//         return context.dataset.data[context.dataIndex] > 0;
+//       },
+//       font: {
+//         weight: "bold",
+//       },
+//       formatter: Math.round,
+//     },
+//   },
+// });
+
+const lineChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+};
 
 const incomeExpense = ref("Income");
 const currentMonth = new Date().toLocaleString("default", { month: "long" });
@@ -550,7 +614,7 @@ select {
 }
 
 .bar {
-  background-color: #4caf50;
+  background-color: #05b2f6;
   height: 100%;
 }
 </style>
