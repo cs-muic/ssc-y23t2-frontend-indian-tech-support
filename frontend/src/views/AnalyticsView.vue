@@ -75,6 +75,7 @@
             <label>
               Primary Tag:
               <select v-model="selectedTag1">
+                <option value="0" selected>- None -</option>
                 <option
                   v-for="(tag, index) in primaryTags"
                   :key="index"
@@ -87,6 +88,7 @@
             <label>
               Secondary Tag:
               <select v-model="selectedTag2">
+                <option value="0" selected>- None -</option>
                 <option
                   v-for="(tag, index) in secondaryTags"
                   :key="index"
@@ -122,18 +124,28 @@
               </select>
             </label>
             <label>
-              Tag 1:
-              <select v-model="selectedTag1">
-                <option v-for="(value, key) in tags" :key="key" :value="key">
-                  {{ key }}
+              Primary Tag:
+              <select v-model="selectedCompareTag1">
+                <option value="None" selected>None</option>
+                <option
+                  v-for="(tag, index) in primaryTags"
+                  :key="index"
+                  :value="tag.id"
+                >
+                  {{ tag.name }}
                 </option>
               </select>
             </label>
             <label>
-              Tag 2:
-              <select v-model="selectedTag2">
-                <option v-for="(value, key) in tags" :key="key" :value="key">
-                  {{ key }}
+              Secondary Tag:
+              <select v-model="selectedCompareTag2">
+                <option value="None" selected>None</option>
+                <option
+                  v-for="(tag, index) in secondaryTags"
+                  :key="index"
+                  :value="tag.id"
+                >
+                  {{ tag.name }}
                 </option>
               </select>
             </label>
@@ -142,6 +154,7 @@
         <!-- Graph section -->
         <div class="graph">
           <h2>Graph</h2>
+          <h1>{{ graphData }}</h1>
           <Bar
             v-if="chartType === 'bar'"
             :data="chartData"
@@ -198,8 +211,8 @@ const startDate = ref(startofYear.toISOString().split("T")[0]);
 const endDate = ref(currentDate.toISOString().split("T")[0]);
 const chartType = ref("bar");
 const selectedChartType = ref("bar");
-// const selectedTag1 = ref("None");
-// const selectedTag2 = ref("None");
+const selectedTag1 = ref("0");
+const selectedTag2 = ref("0");
 const timeframe = ref("Day");
 const transactionType = ref("EXPENDITURE");
 const showFilters = ref(false);
@@ -224,18 +237,55 @@ async function fetchGraphData(startDate, endDate, transactionType, timeframe) {
   }
 }
 
+async function fetchGraphDataWithTags(
+  startDate,
+  endDate,
+  transactionType,
+  timeframe,
+  selectedTag1,
+  selectedTag2
+) {
+  try {
+    const response = await axios.get("/api/transactions/graph-data/tags", {
+      params: {
+        startDate: startDate,
+        endDate: endDate,
+        transactionType: transactionType,
+        dateFormat: timeframe,
+        primaryTag: selectedTag1,
+        secondaryTag: selectedTag2,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching graph data:", error);
+    return error.response.data;
+  }
+}
+
 const findTag = (id) => {
   const tag = primaryTags.find((tag) => tag.id === id.toString());
   return tag ? tag.name : "Tag not found";
 };
 
 const createChart = async () => {
-  graphData.value = await fetchGraphData(
-    startDate.value,
-    endDate.value,
-    transactionType.value,
-    timeframe.value
-  );
+  if (selectedTag1.value === "None" && selectedTag2.value === "None") {
+    graphData.value = await fetchGraphData(
+      startDate.value,
+      endDate.value,
+      transactionType.value,
+      timeframe.value
+    );
+  } else {
+    graphData.value = await fetchGraphDataWithTags(
+      startDate.value,
+      endDate.value,
+      transactionType.value,
+      timeframe.value,
+      selectedTag1.value,
+      selectedTag2.value
+    );
+  }
 
   const start = new Date(startDate.value);
   const end = new Date(endDate.value);
