@@ -146,7 +146,7 @@
                   <label for="date">Date </label>
                   <input
                     type="date"
-                    :value="getDate(item.timestamp)"
+                    :value="getDate()"
                     class="form-control"
                     @input="updateDate($event.target.value)"
                     required
@@ -225,21 +225,36 @@ export default {
   },
   methods: {
     populateFormDate(dateString) {
-      console.log("dateString: " + dateString);
-      // this.form.date = this.getDate(dateString);
-      // this.form.time = this.getTime(dateString);
+      // var dateUpdated = new Date(dateString);
+      var localeDate = this.convertDate(dateString).toLocaleDateString();
+      var localeTime = this.convertDate(dateString).toLocaleTimeString();
+      // console.log(
+      //   "new string: " +
+      //     dateUpdated.getFullYear() +
+      //     "-" +
+      //     dateUpdated.getMonth() +
+      //     "-" +
+      //     dateUpdated.getDay()
+      // );
+      var dateUpdated = new Date(
+        dateUpdated + new Date(dateString)
+      ).toISOString();
+      console.log("dateString: " + localeDate + localeTime);
+      console.log("dateUpdated: " + dateUpdated);
       // Extract date components
-      const dateParts = dateString.split("T")[0].split("-");
-      const year = dateParts[0];
-      const month = dateParts[1];
-      const day = dateParts[2];
+      const dateParts = localeDate.split("/");
+      const year = dateParts[2];
+      const month = dateParts[0];
+      const day = dateParts[1];
       this.form.date = year + "-" + month + "-" + day;
 
       // Extract time components
-      const timeParts = dateString.split("T")[1].split(".")[0].split(":");
+      const timeParts = localeTime.split(" ")[0].split(":");
       const hour = timeParts[0];
       const minute = timeParts[1];
       this.form.time = hour + ":" + minute + ":00.000";
+      console.log("form date: " + this.form.date);
+      console.log("form time: " + this.form.time);
     },
     updateDate(newDate) {
       // Update the date value in the item object
@@ -249,9 +264,8 @@ export default {
       // Update the time value in the item object
       this.form.time = newTime + ":00.000";
     },
-    getDate(timestamp) {
-      const stamp = new Date(timestamp);
-      return stamp.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
+    getDate() {
+      return this.form.date; // Formats the date as YYYY-MM-DD
     },
     getTime(timestamp) {
       const stamp = new Date(timestamp);
@@ -316,14 +330,22 @@ export default {
     async saveTransaction(item, index) {
       try {
         var bodyFormData = new FormData();
+        // const timeParts = localeTime.split(" ")[0].split(":");
+        // const hour = timeParts[0];
+        // const minute = timeParts[1];
+        // this.form.time = hour + ":" + minute + ":00.000";
+        console.log(
+          "Combined raw: " + new Date(`${this.form.date}T${this.form.time}`)
+        );
         console.log(
           "Combined: " + Date.parse(`${this.form.date}T${this.form.time}`)
         );
         var outputTimeStamp = this.formatDateToISOString(
-          new Date(`${this.form.date}T${this.form.time}`)
+          new Date(`${this.form.date}T${this.form.time}` + "Z")
         );
         console.log("Form date" + this.form.date);
         console.log("Form time" + this.form.time);
+        console.log("Output time stamp: " + outputTimeStamp);
         // if (this.form.date) {
         //   console.log("Cq");
         //   outputTimeStamp = this.formatDateToISOString(
@@ -359,7 +381,7 @@ export default {
           .then(function (response) {
             //handle success
             console.log(response);
-            parent.location.reload();
+            // parent.location.reload();
           })
           .catch(function (response) {
             //handle error
@@ -389,7 +411,7 @@ export default {
         .then(function (response) {
           //handle success
           console.log(response);
-          parent.location.reload();
+          // parent.location.reload();
         })
         .catch(function (response) {
           //handle error
