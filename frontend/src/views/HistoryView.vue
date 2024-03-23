@@ -228,14 +228,6 @@ export default {
       // var dateUpdated = new Date(dateString);
       var localeDate = this.convertDate(dateString).toLocaleDateString();
       var localeTime = this.convertDate(dateString).toLocaleTimeString();
-      // console.log(
-      //   "new string: " +
-      //     dateUpdated.getFullYear() +
-      //     "-" +
-      //     dateUpdated.getMonth() +
-      //     "-" +
-      //     dateUpdated.getDay()
-      // );
       var dateUpdated = new Date(
         dateUpdated + new Date(dateString)
       ).toISOString();
@@ -316,52 +308,50 @@ export default {
       const minute = String(date.getMinutes()).padStart(2, "0");
       const second = String(date.getSeconds()).padStart(2, "0");
       const millisecond = String(date.getMilliseconds()).padStart(3, "0");
-      const timezoneOffset = date.getTimezoneOffset();
-      const timezoneOffsetHours = Math.abs(Math.floor(timezoneOffset / 60))
-        .toString()
-        .padStart(2, "0");
-      const timezoneOffsetMinutes = Math.abs(timezoneOffset % 60)
-        .toString()
-        .padStart(2, "0");
-      const timezoneSign = timezoneOffset >= 0 ? "-" : "+";
+      // const timezoneOffset = date.getTimezoneOffset();
+      // const timezoneOffsetHours = Math.abs(Math.floor(timezoneOffset / 60))
+      //   .toString()
+      //   .padStart(2, "0");
+      // const timezoneOffsetMinutes = Math.abs(timezoneOffset % 60)
+      //   .toString()
+      //   .padStart(2, "0");
+      // const timezoneSign = timezoneOffset >= 0 ? "-" : "+";
 
-      return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${timezoneSign}${timezoneOffsetHours}:${timezoneOffsetMinutes}`;
+      // return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${timezoneSign}${timezoneOffsetHours}:${timezoneOffsetMinutes}`;
+      return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}+00:00`;
+    },
+    addLeadingZeroIfNeeded(str) {
+      // Split the time string into hours, minutes, and seconds
+      var timeParts = str.split(":");
+
+      // Add leading zero to hour if needed
+      timeParts[0] = timeParts[0].padStart(2, "0");
+
+      // Join the time parts back together
+      return timeParts.join(":");
     },
     async saveTransaction(item, index) {
       try {
         var bodyFormData = new FormData();
-        // const timeParts = localeTime.split(" ")[0].split(":");
-        // const hour = timeParts[0];
-        // const minute = timeParts[1];
-        // this.form.time = hour + ":" + minute + ":00.000";
-        console.log(
-          "Combined raw: " + new Date(`${this.form.date}T${this.form.time}`)
+        const isoDateTime = new Date(
+          `${this.form.date}T${this.addLeadingZeroIfNeeded(this.form.time)}`
+        ).toISOString();
+
+        // Get the timezone offset in minutes
+        const timezoneOffsetMinutes = new Date().getTimezoneOffset();
+
+        // Adjust the date and time to UTC by subtracting the timezone offset
+        const utcDateTime = new Date(
+          new Date(isoDateTime).getTime() -
+            timezoneOffsetMinutes * 60 * 1000 -
+            7 * 60 * 60000
         );
-        console.log(
-          "Combined: " + Date.parse(`${this.form.date}T${this.form.time}`)
-        );
-        var outputTimeStamp = this.formatDateToISOString(
-          new Date(`${this.form.date}T${this.form.time}` + "Z")
-        );
+
+        // Format the adjusted date and time back to ISO format with explicit UTC timezone
+        const outputTimeStamp = utcDateTime.toISOString();
         console.log("Form date" + this.form.date);
         console.log("Form time" + this.form.time);
         console.log("Output time stamp: " + outputTimeStamp);
-        // if (this.form.date) {
-        //   console.log("Cq");
-        //   outputTimeStamp = this.formatDateToISOString(
-        //     new Date(`${this.getDate(item.date)}T${this.form.time}`)
-        //   );
-        // }
-        // } else if (this.form.time.isNan) {
-        //   console.log("B");
-        //   outputTimeStamp = this.formatDateToISOString(
-        //     new Date(`${this.form.date}T${this.getTime(item.date)}`)
-        //   );
-        // }
-        // if (this.form.date.isNan && this.form.time.isNan) {
-        //   console.log("A");
-        //   outputTimeStamp = this.historyData[index].timestamp;
-        // }
         bodyFormData.append("timestamp", outputTimeStamp);
         bodyFormData.append("id", item.id);
         bodyFormData.append("editType", "EDIT");
@@ -381,7 +371,7 @@ export default {
           .then(function (response) {
             //handle success
             console.log(response);
-            // parent.location.reload();
+            parent.location.reload();
           })
           .catch(function (response) {
             //handle error
@@ -411,7 +401,7 @@ export default {
         .then(function (response) {
           //handle success
           console.log(response);
-          // parent.location.reload();
+          parent.location.reload();
         })
         .catch(function (response) {
           //handle error
