@@ -64,7 +64,7 @@
     <!--    </div>-->
 
     <!-- Recurring data table -->
-    <div class="container">
+    <div class="container-history">
       <table class="recurring-table">
         <thead>
           <tr>
@@ -424,7 +424,7 @@ export default {
 
 <style>
 /* General container styling for refined look */
-.container {
+.container-history {
   width: 90% !important;
   margin: 0 auto;
   padding: 20px;
