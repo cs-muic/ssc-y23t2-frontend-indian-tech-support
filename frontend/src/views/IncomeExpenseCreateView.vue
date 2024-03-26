@@ -72,23 +72,26 @@
             <td>{{ item.transactionType }}</td>
             <td>{{ item.value.toFixed(2) }}</td>
             <td>
-              {{
-                tagsSearch.find(
-                  (tag) => tag.id.toString() === item.tagId.toString()
-                )?.name || "N/A"
-              }}
+              <!-- Display primary tag name using the main tags array -->
+              {{ tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A" }}
             </td>
             <td>
-              {{
-                tags2Search.find(
-                  (tag) => tag.id.toString() === item.tagId2.toString()
-                )?.name || "N/A"
-              }}
+              {{ item.secondaryTagName || "N/A" }}
             </td>
             <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
-              <button class="action-button edit">Edit</button>
-              <button class="action-button delete">Delete</button>
+              <button
+                class="action-button edit"
+                @click="editRecurringTransaction(item)"
+              >
+                Edit
+              </button>
+              <button
+                class="action-button delete"
+                @click="deleteRecurringTransaction(item.id)"
+              >
+                Delete
+              </button>
             </td>
           </tr>
         </tbody>
@@ -362,17 +365,6 @@ export default {
         this.form.recurring = false; // Turn off 'Recurring' if 'Shortcut' is checked
       }
     },
-    // updateSubcategories(mainCategoryId) {
-    //   // Calculate start and end IDs for subcategories based on the selected main category ID
-    //   const startId = parseInt(mainCategoryId) * 3 - 2;
-    //   const endId = startId + 2;
-    //
-    //   // Filter subcategories based on calculated range
-    //   this.tags2 = subCategories.filter((subCat) => {
-    //     const subCatId = parseInt(subCat.id);
-    //     return subCatId >= startId && subCatId <= endId;
-    //   });
-    // },
     getCurrentDate() {
       const today = new Date();
       return today.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
@@ -407,8 +399,6 @@ export default {
       if (this.form.recurring || this.form.shortcut) {
         formData.shortcutType = this.form.recurring ? "RECURRING" : "FAVORITES";
       }
-
-      console.log("Form data being submitted:", formData);
 
       try {
         // Check if the transaction is recurring or a favorite
