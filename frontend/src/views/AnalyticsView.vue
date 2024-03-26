@@ -547,6 +547,7 @@ watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
 
 .sidebar {
   height: 100%;
+  text-align: center;
   margin-top: 20px;
   margin-left: 20px;
   width: 20%; /* Adjust as needed */

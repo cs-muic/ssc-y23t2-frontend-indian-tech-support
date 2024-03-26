@@ -15,16 +15,18 @@
       Target/Budget
     </button>
     <div v-if="showFields">
+      <label>Monthly Budget: </label>
       <input
         type="text"
         v-model="setBudget"
-        placeholder="Set Monthly Budget"
+        :placeholder="1000"
         pattern="^\d*(\.\d{0,2})?$"
       />
+      <label>Monthly Target: </label>
       <input
         type="text"
         v-model="setTarget"
-        placeholder="Set Monthly Target"
+        :placeholder="1000"
         pattern="^\d*(\.\d{0,2})?$"
       />
       <button @click="submitTargetBudget">Submit</button>
@@ -34,8 +36,11 @@
 
 <script setup>
 import { Doughnut } from "vue-chartjs";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+
+ChartJS.register(ChartDataLabels);
 import {
   Chart as ChartJS,
   Title,
@@ -69,8 +74,37 @@ const setBudget = ref("");
 const setTarget = ref("");
 const finalBudget = ref(0);
 const finalTarget = ref(0);
-// const currentExpense = ref(0);
-// const currentIncome = ref(0);
+const currentExpense = ref(0);
+const currentIncome = ref(0);
+const budgetLeft = computed(() =>
+  Math.max(0, finalBudget.value - currentExpense.value)
+);
+const targetLeft = computed(() =>
+  Math.max(0, finalTarget.value - currentIncome.value)
+);
+const currentMonth = new Date().getMonth() + 1;
+
+const fetchIncomeAmount = async () => {
+  try {
+    const response = await axios.get(
+      `/api/transactions/INCOME/${currentMonth}`
+    );
+    currentIncome.value = response.data.totalAmount;
+  } catch (error) {
+    currentIncome.value = 0;
+  }
+};
+
+const fetchExpenditureAmount = async () => {
+  try {
+    const response = await axios.get(
+      `/api/transactions/EXPENDITURE/${currentMonth}`
+    );
+    currentExpense.value = response.data.totalAmount;
+  } catch (error) {
+    currentExpense.value = 0;
+  }
+};
 
 const fetchTargetBudget = async () => {
   try {
@@ -101,22 +135,22 @@ const submitTargetBudget = async () => {
 };
 
 const budgetData = {
-  labels: ["Budget", "Target"],
+  labels: ["Expenses", "Budget Left"],
   datasets: [
     {
-      backgroundColor: ["#41B883", "#cb3054"],
-      data: [finalBudget, finalTarget],
+      backgroundColor: ["#cb3054", "#3f101b"],
+      data: [currentExpense, budgetLeft],
       color: "#ffffff",
     },
   ],
 };
 
 const targetData = ref({
-  labels: ["Alternate Target", "Alternate Budget"],
+  labels: ["Incomes", "Target Left"],
   datasets: [
     {
-      backgroundColor: ["#ff7400", "#052eef"],
-      data: [finalTarget, finalBudget],
+      backgroundColor: ["#27f507", "#073301"],
+      data: [currentIncome, targetLeft],
       color: "#ffffff",
     },
   ],
@@ -125,12 +159,27 @@ const targetData = ref({
 const options = {
   responsive: true,
   maintainAspectRatio: false,
+  plugins: {
+    datalabels: {
+      color: "#ffffff",
+      display: true,
+      align: "center",
+      anchor: "center",
+      formatter: function (value, context) {
+        return context.chart.data.datasets[0].data[context.dataIndex].value;
+      },
+    },
+  },
   onClick: function () {
     showBudget.value = !showBudget.value;
   },
 };
 
-onMounted(fetchTargetBudget);
+onMounted(async () => {
+  await fetchIncomeAmount();
+  await fetchExpenditureAmount();
+  await fetchTargetBudget();
+});
 </script>
 <style scoped>
 .doughnut-container {
