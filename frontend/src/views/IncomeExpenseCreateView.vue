@@ -72,23 +72,26 @@
             <td>{{ item.transactionType }}</td>
             <td>{{ item.value.toFixed(2) }}</td>
             <td>
-              {{
-                tagsSearch.find(
-                  (tag) => tag.id.toString() === item.tagId.toString()
-                )?.name || "N/A"
-              }}
+              <!-- Display primary tag name using the main tags array -->
+              {{ tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A" }}
             </td>
             <td>
-              {{
-                tags2Search.find(
-                  (tag) => tag.id.toString() === item.tagId2.toString()
-                )?.name || "N/A"
-              }}
+              {{ item.secondaryTagName || "N/A" }}
             </td>
             <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
-              <button class="action-button edit">Edit</button>
-              <button class="action-button delete">Delete</button>
+              <button
+                class="action-button edit"
+                @click="editRecurringTransaction(item)"
+              >
+                Edit
+              </button>
+              <button
+                class="action-button delete"
+                @click="deleteRecurringTransaction(item.id)"
+              >
+                Delete
+              </button>
             </td>
           </tr>
         </tbody>
@@ -187,7 +190,7 @@
             <select v-model="form.tagId" class="form-control" required>
               <option disabled value="">Select Primary Tag</option>
               <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-                {{ tag.name }}
+                {{ tag.tagName }}
               </option>
             </select>
           </div>
@@ -195,9 +198,13 @@
           <div class="form-group">
             <label for="tag2">Secondary Tag</label>
             <select v-model="form.tagId2" class="form-control">
-              <option disabled value="">Select Secondary Tag</option>
-              <option v-for="tag in tags2" :key="tag.id" :value="tag.id">
-                {{ tag.name }}
+              <option disabled value="" selected>Select Secondary Tag</option>
+              <option
+                v-for="tag in secondaryTags"
+                :key="tag.id"
+                :value="tag.id"
+              >
+                {{ tag.secondaryTagName }}
               </option>
             </select>
           </div>
@@ -220,8 +227,6 @@
 
 <script>
 import axios from "axios";
-import mainCategories from "@/assets/Tags.json"; // Adjust the path as necessary
-import subCategories from "@/assets/Tags2.json"; // Adjust the path as necessary
 
 export default {
   name: "IncomeExpenseCreationView",
@@ -231,10 +236,8 @@ export default {
   data() {
     return {
       activeTab: "favorites",
-      tags: mainCategories, // Initialize tags from the imported JSON file
-      tags2: [], // Will be dynamically filled based on main category selection
-      tagsSearch: mainCategories,
-      tags2Search: subCategories,
+      tags: [], // Initialize tags from the imported JSON file
+      secondaryTags: [], // Will be dynamically filled based on main category selection
       favoritesData: [], // Define the property here
       recurringData: [], // Define the property here
       form: {
@@ -252,16 +255,53 @@ export default {
     };
   },
   watch: {
-    // Watch for changes in the selected main category to update subcategories
-    "form.tagId": function (newVal) {
-      this.updateSubcategories(newVal);
+    "form.tagId": function (newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.updateSubcategories(newVal);
+      }
     },
   },
   created() {
+    this.fetchTags();
     this.fetchTransactionBlueprints();
     this.fetchFavorites();
   },
   methods: {
+    async fetchTags() {
+      try {
+        const response = await axios.get("/api/tag");
+        if (response.data && response.data.loggedIn) {
+          // Assuming response.data.tags is the correct path
+          const uniqueTags = Array.from(
+            new Map(response.data.tags.map((tag) => [tag.id, tag])).values()
+          );
+          this.tags = uniqueTags;
+        } else {
+          console.error("Failed to fetch tags or user not logged in.");
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    },
+    async updateSubcategories(mainCategoryId) {
+      if (!mainCategoryId) return;
+      try {
+        const response = await axios.get("/api/secondary_tag", {
+          params: { tagId: mainCategoryId },
+        });
+        if (response.data && response.data.loggedIn) {
+          this.secondaryTags = response.data.secondaryTags;
+        } else {
+          console.error(
+            "Failed to fetch secondary tags or user not logged in."
+          );
+          this.secondaryTags = []; // Reset secondary tags if fetch fails or not logged in
+        }
+      } catch (error) {
+        console.error("Error fetching secondary tags:", error);
+        this.secondaryTags = []; // Reset secondary tags in case of error
+      }
+    },
     async deleteFavorite(id) {
       try {
         // Make the API call to delete the favorite by ID
@@ -325,17 +365,6 @@ export default {
         this.form.recurring = false; // Turn off 'Recurring' if 'Shortcut' is checked
       }
     },
-    updateSubcategories(mainCategoryId) {
-      // Calculate start and end IDs for subcategories based on the selected main category ID
-      const startId = parseInt(mainCategoryId) * 3 - 2;
-      const endId = startId + 2;
-
-      // Filter subcategories based on calculated range
-      this.tags2 = subCategories.filter((subCat) => {
-        const subCatId = parseInt(subCat.id);
-        return subCatId >= startId && subCatId <= endId;
-      });
-    },
     getCurrentDate() {
       const today = new Date();
       return today.toISOString().split("T")[0]; // Formats the date as YYYY-MM-DD
@@ -370,8 +399,6 @@ export default {
       if (this.form.recurring || this.form.shortcut) {
         formData.shortcutType = this.form.recurring ? "RECURRING" : "FAVORITES";
       }
-
-      console.log("Form data being submitted:", formData);
 
       try {
         // Check if the transaction is recurring or a favorite
