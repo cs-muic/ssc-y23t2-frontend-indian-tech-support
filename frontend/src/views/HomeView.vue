@@ -25,7 +25,9 @@
 
         <!-- Budget Graph Section -->
         <div class="budget-graph">
-          <h2>Budget: Graph</h2>
+          <div class="budgetTarget"></div>
+          <BudgetDoughnutComponent />
+          <div class="expenseGraph"></div>
           <!-- Placeholder for budget graph -->
         </div>
 
@@ -48,9 +50,12 @@
 <script>
 import NavbarComponent from "@/components/NavbarComponent.vue";
 import axios from "axios";
+import BudgetDoughnutComponent from "@/components/BudgetDoughnutComponent.vue";
+
 export default {
   name: "Home",
   components: {
+    BudgetDoughnutComponent,
     NavbarComponent,
   },
   data: () => ({
@@ -160,6 +165,14 @@ export default {
   font-size: 1.2rem;
   margin-right: 20px; /* Add right margin */
   margin-bottom: 20px; /* Add right margin */
+}
+
+.budgetTarget {
+  width: 400px;
+}
+
+.expenseGraph {
+  flex-grow: 1;
 }
 
 @keyframes fadeIn {
