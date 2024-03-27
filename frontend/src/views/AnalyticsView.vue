@@ -12,39 +12,41 @@
           <!--          Displays the donut chart-->
           <BudgetDoughnutComponent />
         </div>
-        <div class="amount">
-          <h2>Amount:</h2>
-          <h2>{{ totalAmount }}</h2>
-          <!--          Displays the amount-->
-        </div>
-        <div class="category">
-          <button @click="toggleIncomeExpense">{{ incomeExpense }}</button>
-          <select v-model="selectedMonth">
-            <option
-              v-for="(month, index) in months"
-              :key="index"
-              :value="month"
-            >
-              {{ month }}
-            </option>
-          </select>
-          <!--        Drop down for months, dropdown for Category-->
-        </div>
-        <div class="tag-stats">
-          <h2>Tag Stats</h2>
-          <!--          Lists down all the tags and how much income and expenditure has been done on them-->
-          <!--          represented with a bar -->
-          <ul>
-            <li v-for="(value, key) in tagStats" :key="key">
-              {{ findTag(value[0]) }}, ${{ value[1] }}
-              <div class="bar-container">
-                <div
-                  class="bar"
-                  :style="{ width: (value[1] / totalAmount) * 100 + '%' }"
-                ></div>
-              </div>
-            </li>
-          </ul>
+        <div class="rest-sidebar">
+          <div class="amount">
+            <h2>Amount</h2>
+            <h3>{{ totalAmount }}</h3>
+            <!--          Displays the amount-->
+          </div>
+          <div class="category">
+            <button @click="toggleIncomeExpense">{{ incomeExpense }}</button>
+            <select v-model="selectedMonth">
+              <option
+                v-for="(month, index) in months"
+                :key="index"
+                :value="month"
+              >
+                {{ month }}
+              </option>
+            </select>
+            <!--        Drop down for months, dropdown for Category-->
+          </div>
+          <div class="tag-stats">
+            <h2>Tag Stats</h2>
+            <!--          Lists down all the tags and how much income and expenditure has been done on them-->
+            <!--          represented with a bar -->
+            <ul>
+              <li v-for="(value, key) in tagStats" :key="key">
+                {{ findTag(value[0]) }}, ${{ value[1] }}
+                <div class="bar-container">
+                  <div
+                    class="bar"
+                    :style="{ width: (value[1] / totalAmount) * 100 + '%' }"
+                  ></div>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <!--      Main content section-->
@@ -447,7 +449,7 @@ const lineChartOptions = {
   maintainAspectRatio: false,
 };
 
-const incomeExpense = ref("Income");
+const incomeExpense = ref("Expenses");
 const currentMonth = new Date().toLocaleString("default", { month: "long" });
 const selectedMonth = ref(currentMonth);
 const months = [
@@ -555,27 +557,44 @@ watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
   flex-direction: column;
   padding: 5px;
   gap: 20px; /* Adjust as needed */
-  background-color: #e9ecef; /* Placeholder color */
 }
 
-.amount {
-  height: 100px; /* Adjust as needed */
-  background-color: #ffffff; /* Placeholder color */
+.rest-sidebar {
+  height: auto; /* Adjusts to the content inside */
+  background-color: #f6f6f6; /* Placeholder color */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+  padding: 5px 5px 20px;
 }
 
 .donut {
-  height: 200px; /* Adjust as needed */
-  background-color: #ffffff; /* Placeholder color */
+  height: 250px; /* Adjust as needed */
+  background-color: #f6f6f6; /* Placeholder color */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+}
+
+.amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.amount h3 {
+  margin: 0; /* Remove default margins */
+  padding: 2px; /* Add some padding */
+  font-size: 3em; /* Adjust font size */
+  color: #000000; /* Dark grey color for text */
 }
 
 .category {
   height: 50px; /* Adjust as needed */
-  background-color: #ffffff; /* Placeholder color */
-}
-
-.tag-stats {
-  height: 390px;
-  background-color: #ffffff; /* Placeholder color */
 }
 
 .content {
@@ -664,11 +683,30 @@ select {
 
 .bar-container {
   background-color: #ccc;
-  height: 20px;
+  height: 10px; /* Reduced height */
+  border-radius: 10px; /* Added border-radius */
+  margin-bottom: 6px;
+  margin-right: 5px;
 }
 
 .bar {
   background-color: #05b2f6;
   height: 100%;
+  border-radius: 10px; /* Added border-radius */
+}
+
+.tag-stats {
+  list-style-type: none; /* Remove bullets */
+  text-align: left; /* Align text to the left */
+  padding-right: 5px; /* Adjust as needed */
+}
+
+.tag-stats h2 {
+  padding-bottom: 10px;
+}
+
+.tag-stats li {
+  list-style-type: none;
+  margin-bottom: 10px; /* Add some space between list items */
 }
 </style>

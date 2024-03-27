@@ -10,11 +10,11 @@
       :data="targetData"
       :options="options"
     />
-    <button @click="showFields = !showFields">
+    <button class="edit-button" @click="showFields = !showFields">
       {{ finalBudget !== 0 && finalTarget !== 0 ? "Edit" : "Create" }}
       Target/Budget
     </button>
-    <div v-if="showFields">
+    <div class="fields" v-if="showFields">
       <label>Monthly Budget: </label>
       <input
         type="text"
@@ -29,7 +29,7 @@
         :placeholder="1000"
         pattern="^\d*(\.\d{0,2})?$"
       />
-      <button @click="submitTargetBudget">Submit</button>
+      <button class="submit-button" @click="submitTargetBudget">Submit</button>
     </div>
   </div>
 </template>
@@ -185,5 +185,54 @@ onMounted(async () => {
 .doughnut-container {
   max-width: 350px; /* Adjust as needed */
   max-height: 200px; /* Adjust as needed */
+}
+
+.edit-button {
+  margin-top: 10px; /* Adjust as needed */
+  border: 2px solid #ffffff; /* Change border color to white and increase thickness */
+  border-radius: 10px; /* Round the corners */
+  padding: 2px; /* Add some padding to loosen the box */
+  transition: transform 0.3s ease; /* Smooth transition for hover effect */
+  background-color: #ffffff; /* Change background color to white */
+  outline: 1px solid #000000; /* Add black outline */
+}
+
+.edit-button:hover {
+  transform: scale(
+    1.05
+  ); /* Make the button slightly larger when hovering over it */
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding: 2px;
+  margin: 5px;
+  gap: 10px; /* Adjust as needed */
+}
+
+.fields label {
+  font-weight: bold;
+  margin-bottom: 3px; /* Adjust as needed */
+}
+
+.fields input {
+  width: 100%;
+  padding: 5px; /* Adjust as needed */
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.submit-button {
+  align-items: centre;
+  margin-top: 1px; /* Adjust as needed */
+  border: 1px solid #ffffff; /* Change border color to white and increase thickness */
+  border-radius: 10px; /* Round the corners */
+  padding: 1px; /* Add some padding to loosen the box */
+  transition: transform 0.3s ease; /* Smooth transition for hover effect */
+  background-color: #ffffff; /* Change background color to white */
+  outline: 1px solid #000000; /* Add black outline */
 }
 </style>
