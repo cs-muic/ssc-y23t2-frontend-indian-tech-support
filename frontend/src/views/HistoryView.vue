@@ -124,24 +124,6 @@
               </td>
               <td><input v-model="item.notes" /></td>
               <td>
-                <!--                <input v-model="item.timestamp" />-->
-                <!--                <div class="form-group">-->
-                <!--                  <label for="date">Date </label>-->
-                <!--                  <input-->
-                <!--                    type="date"-->
-                <!--                    :value="getDate(item.timestamp)"-->
-                <!--                    class="form-control"-->
-                <!--                    required-->
-                <!--                  />-->
-                <!--                </div>-->
-                <!--                <div class="form-group">-->
-                <!--                  <label for="time">Time </label>-->
-                <!--                  <input-->
-                <!--                    type="time"-->
-                <!--                    :value="getTime(item.timestamp)"-->
-                <!--                    class="form-control"-->
-                <!--                  />-->
-                <!--                </div>-->
                 <div class="form-group">
                   <label for="date">Date </label>
                   <input
@@ -298,27 +280,6 @@ export default {
         const tagId = parseInt(tag.id);
         return tagId >= startId && tagId <= endId;
       });
-    },
-    formatDateToISOString(date) {
-      console.log("format: " + date);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hour = String(date.getHours()).padStart(2, "0");
-      const minute = String(date.getMinutes()).padStart(2, "0");
-      const second = String(date.getSeconds()).padStart(2, "0");
-      const millisecond = String(date.getMilliseconds()).padStart(3, "0");
-      // const timezoneOffset = date.getTimezoneOffset();
-      // const timezoneOffsetHours = Math.abs(Math.floor(timezoneOffset / 60))
-      //   .toString()
-      //   .padStart(2, "0");
-      // const timezoneOffsetMinutes = Math.abs(timezoneOffset % 60)
-      //   .toString()
-      //   .padStart(2, "0");
-      // const timezoneSign = timezoneOffset >= 0 ? "-" : "+";
-
-      // return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}${timezoneSign}${timezoneOffsetHours}:${timezoneOffsetMinutes}`;
-      return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}+00:00`;
     },
     addLeadingZeroIfNeeded(str) {
       // Split the time string into hours, minutes, and seconds

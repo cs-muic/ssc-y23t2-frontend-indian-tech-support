@@ -1,7 +1,8 @@
 module.exports = {
   transpileDependencies: ["vuetify"],
   devServer: {
-    host: "localhost", // frontend hostname or ip
+    // host: "localhost", // frontend hostname or ip
+    host: process.env.RUNNING_IN_DOCKER ? '0.0.0.0' : 'localhost',
     allowedHosts: "all",
     port: 8080, // frontend port
     https: false, // no ssl
