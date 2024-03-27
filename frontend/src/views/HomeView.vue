@@ -25,9 +25,12 @@
 
         <!-- Budget Graph Section -->
         <div class="budget-graph">
-          <div class="budgetTarget"></div>
-          <BudgetDoughnutComponent />
-          <div class="expenseGraph"></div>
+          <div class="budgetTarget">
+            <BudgetDoughnutComponent />
+          </div>
+          <div class="expenseGraph">
+            <DefaultChart />
+          </div>
           <!-- Placeholder for budget graph -->
         </div>
 
@@ -51,10 +54,12 @@
 import NavbarComponent from "@/components/NavbarComponent.vue";
 import axios from "axios";
 import BudgetDoughnutComponent from "@/components/BudgetDoughnutComponent.vue";
+import DefaultChart from "@/components/DefaultChart.vue";
 
 export default {
   name: "Home",
   components: {
+    DefaultChart,
     BudgetDoughnutComponent,
     NavbarComponent,
   },
@@ -120,7 +125,8 @@ export default {
 }
 
 .center-content {
-  flex-grow: 1;
+  width: 90%;
+  flex-grow: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -148,7 +154,6 @@ export default {
   transform: translateY(-5px);
 }
 
-.budget-graph,
 .categories-expense {
   background-color: #f7fafc; /* Slightly different shade for distinction */
   padding: 20px;
@@ -158,7 +163,7 @@ export default {
 }
 
 .shortcuts-section {
-  width: 300px; /* Unchanged width */
+  width: 300px;
   background-color: #e2e8f0; /* Softer shade */
   padding: 20px;
   text-align: center;
@@ -167,12 +172,37 @@ export default {
   margin-bottom: 20px; /* Add right margin */
 }
 
+.budget-graph {
+  display: flex;
+  padding: 10px;
+  text-align: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
 .budgetTarget {
-  width: 400px;
+  padding-top: 10px;
+  background-color: #f7fafc;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */ /* Prevents the div from shrinking */
+  overflow: auto;
 }
 
 .expenseGraph {
-  flex-grow: 1;
+  background-color: #f7fafc;
+  height: 275px; /* Adjust as needed */
+  width: 750px; /* Adjust as needed */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+  margin-left: 20px;
+}
+
+.budgetTarget > * {
+  transform: scale(1); /* Adjust as needed */
 }
 
 @keyframes fadeIn {

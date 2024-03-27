@@ -149,7 +149,7 @@ const targetData = ref({
   labels: ["Incomes", "Target Left"],
   datasets: [
     {
-      backgroundColor: ["#27f507", "#073301"],
+      backgroundColor: ["#23ce0b", "#073301"],
       data: [currentIncome, targetLeft],
       color: "#ffffff",
     },
@@ -185,6 +185,7 @@ onMounted(async () => {
 .doughnut-container {
   max-width: 350px; /* Adjust as needed */
   max-height: 200px; /* Adjust as needed */
+  align-items: center;
 }
 
 .edit-button {
@@ -226,7 +227,7 @@ onMounted(async () => {
 }
 
 .submit-button {
-  align-items: centre;
+  align-items: center;
   margin-top: 1px; /* Adjust as needed */
   border: 1px solid #ffffff; /* Change border color to white and increase thickness */
   border-radius: 10px; /* Round the corners */
