@@ -53,7 +53,7 @@
       <div class="content">
         <!-- Filters section -->
         <div class="filters">
-          <h2>Filters</h2>
+          <h3>Filters</h3>
           <div class="top-row">
             <label>
               Start Date:
@@ -119,43 +119,44 @@
             <button @click="createChart">Create</button>
           </div>
           <!-- Filters content... -->
-        </div>
-        <div v-if="showFilters">
-          <h3>Compare With</h3>
-          <div class="bottom-row">
-            <label>
-              Transaction Type:
-              <select v-model="compareTransactionType">
-                <option value="EXPENDITURE">Expenses</option>
-                <option value="INCOME">Income</option>
-              </select>
-            </label>
-            <label>
-              Primary Tag:
-              <select v-model="compareTag1">
-                <option value="0" selected>- None -</option>
-                <option
-                  v-for="(tag, index) in primaryTags"
-                  :key="index"
-                  :value="tag.id"
-                >
-                  {{ tag.name }}
-                </option>
-              </select>
-            </label>
-            <label>
-              Secondary Tag:
-              <select v-model="compareTag2">
-                <option value="0" selected>- None -</option>
-                <option
-                  v-for="(tag, index) in secondaryTags"
-                  :key="index"
-                  :value="tag.id"
-                >
-                  {{ tag.name }}
-                </option>
-              </select>
-            </label>
+
+          <div v-if="showFilters">
+            <h3>Compare With</h3>
+            <div class="bottom-row">
+              <label>
+                Transaction Type:
+                <select v-model="compareTransactionType">
+                  <option value="EXPENDITURE">Expenses</option>
+                  <option value="INCOME">Income</option>
+                </select>
+              </label>
+              <label>
+                Primary Tag:
+                <select v-model="compareTag1">
+                  <option value="0" selected>- None -</option>
+                  <option
+                    v-for="(tag, index) in primaryTags"
+                    :key="index"
+                    :value="tag.id"
+                  >
+                    {{ tag.name }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                Secondary Tag:
+                <select v-model="compareTag2">
+                  <option value="0" selected>- None -</option>
+                  <option
+                    v-for="(tag, index) in secondaryTags"
+                    :key="index"
+                    :value="tag.id"
+                  >
+                    {{ tag.name }}
+                  </option>
+                </select>
+              </label>
+            </div>
           </div>
         </div>
         <!-- Graph section -->
@@ -599,13 +600,12 @@ watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
 
 .content {
   width: 80%; /* Adjust as needed */
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
-  margin: 20px;
-  gap: 20px; /* Adjust as needed */
-  padding: 5px;
-  background-color: #e9ecef; /* Placeholder color */
+  margin: 15px;
+  gap: 15px; /* Adjust as needed */
+  padding: 10px 15px 5px 5px;
 }
 
 .category {
@@ -615,42 +615,36 @@ watch([selectedMonth, incomeExpense], fetchTagStats, { immediate: true });
 }
 
 .filters {
-  align-items: center;
-  height: 200px; /* Adjust as needed */
-  background-color: #ffffff;
+  align-items: stretch;
+  text-align: center;
+  height: auto; /* Adjust as needed */
+  background-color: #f6f6f6; /* Placeholder color */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .top-row,
-.bottom-row {
+.bottom-row,
+.third-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* or space-between */
   align-items: center;
   padding: 10px;
 }
 
 .filters input[type="date"],
-.filters select {
-  flex: 1;
-  margin: 0 10px;
-}
-
-.third-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-}
-
+.filters select,
 .third-row button {
   flex: 1;
   margin: 0 10px;
 }
 
 .graph {
-  height: 550px; /* Adjust as needed */
-  background-color: #ffffff;
-  margin-top: 10px;
-  padding: 5px;
+  height: 700px; /* Adjust as needed */
+  padding: 10px 20px 50px 10px;
+  background-color: #f6f6f6; /* Placeholder color */
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 h2 {
