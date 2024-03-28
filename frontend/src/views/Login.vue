@@ -6,10 +6,8 @@
   >
     <v-row justify="center">
       <v-col cols="12" sm="8" md="4">
-        <!-- Flip card container -->
         <transition name="flip" mode="out-in">
           <div :key="flipKey" class="form-container">
-            <!-- Login Form -->
             <v-form v-if="!showSignup" ref="form" class="py-5">
               <v-text-field
                 v-model="username"
@@ -44,6 +42,7 @@
               >
                 {{ signupError }}
               </v-alert>
+              <!-- Signup Form Fields -->
               <v-text-field
                 v-model="newName"
                 :rules="[(v) => !!v || 'Display name is required']"
@@ -78,6 +77,44 @@
                 dark
                 class="text-white"
               ></v-text-field>
+              <v-row>
+                <v-col cols="12">
+                  <v-sheet
+                    class="d-flex justify-center align-center position-relative"
+                    outlined
+                    tile
+                    color="grey lighten-2"
+                    style="
+                      height: 250px;
+                      cursor: pointer;
+                      border-style: dashed;
+                      border-width: 2px;
+                      border-radius: 5px;
+                    "
+                    @click="openFilePicker"
+                    @drop.prevent="onDrop"
+                    @dragover.prevent
+                    @dragenter.prevent
+                    @dragleave.prevent
+                    v-bind:class="{ 'bg-light-blue': dragActive }"
+                  >
+                    <input
+                      type="file"
+                      ref="fileInput"
+                      style="display: none"
+                      @change="onFileChange"
+                      accept="image/*"
+                    />
+                    <v-icon x-large color="primary">mdi-upload</v-icon>
+                    <div v-if="avatarName" class="mt-2 text-h6">
+                      {{ avatarName }}
+                    </div>
+                    <div v-else class="mt-2 text-h6">
+                      Click or drag an image here to upload
+                    </div>
+                  </v-sheet>
+                </v-col>
+              </v-row>
               <v-btn color="primary" class="mr-4" @click="signup"
                 >Sign Up</v-btn
               >
@@ -98,6 +135,8 @@ import Vue from "vue";
 
 export default {
   data: () => ({
+    // Initial data setup
+    password: "",
     signupError: "",
     showSignup: false,
     flipKey: 0,
@@ -107,11 +146,10 @@ export default {
     newPassword: "",
     confirmPassword: "",
     usernameRules: [(v) => !!v || "Username is required"],
-    emailRules: [
-      (v) => !!v || "E-mail is required",
-      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
-    ],
     passwordRules: [(v) => !!v || "Password is required"],
+    dragActive: false,
+    avatarName: null,
+    avatarFile: null, // To store the uploaded file
   }),
   methods: {
     async validate() {
@@ -126,12 +164,26 @@ export default {
         }
       }
     },
+    openFilePicker() {
+      this.$refs.fileInput.click();
+    },
+    onFileChange(e) {
+      const files = e.target.files || e.dataTransfer.files;
+      if (!files.length) return;
+      this.avatarFile = files[0]; // Store the file
+      this.avatarName = files[0].name;
+    },
     async signup() {
       if (this.$refs.signupForm.validate()) {
         let formData = new FormData();
         formData.append("username", this.newUsername);
         formData.append("password", this.newPassword);
         formData.append("display_name", this.newName);
+        if (this.avatarFile) {
+          formData.append("avatar", this.avatarFile);
+        } else {
+          formData.append("avatar", ""); // Ensure backend receives an avatar key even if no file is selected
+        }
 
         try {
           let response = await Vue.axios.post("/api/signup", formData);
@@ -139,12 +191,10 @@ export default {
             console.log("Signup successful");
             this.$router.push({ path: "/" });
           } else {
-            // Handle signup failure
-            this.signupError = response.data.message; // Set the error message
+            this.signupError = response.data.message;
             console.error("Signup failed:", response.data.message);
           }
         } catch (error) {
-          // In case of network errors or other axios errors
           this.signupError = "An unexpected error occurred. Please try again.";
           console.error("Signup request failed:", error);
         }
@@ -159,19 +209,14 @@ export default {
       this.newUsername = "";
       this.newPassword = "";
       this.confirmPassword = "";
+      this.avatarFile = null;
+      this.avatarName = null;
     },
     toggleForm() {
       this.showSignup = !this.showSignup;
-      this.flipKey++; // Increment key to trigger flip animation
+      this.flipKey++; // Trigger flip animation
       this.reset();
       this.resetSignupForm();
-    },
-  },
-  theme: {
-    extend: {
-      backgroundImage: {
-        "logo-test": "url('/src/assets/TestBG.webp')",
-      },
     },
   },
 };
