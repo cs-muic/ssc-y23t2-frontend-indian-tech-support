@@ -145,7 +145,10 @@ export default {
     newUsername: "",
     newPassword: "",
     confirmPassword: "",
-    usernameRules: [(v) => !!v || "Username is required"],
+    usernameRules: [
+      (v) => !!v || "Username is required",
+      (v) => !/\s/.test(v) || "Username cannot contain spaces",
+    ],
     passwordRules: [(v) => !!v || "Password is required"],
     dragActive: false,
     avatarName: null,
