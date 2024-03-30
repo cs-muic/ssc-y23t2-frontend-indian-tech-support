@@ -9,6 +9,7 @@
       <router-link to="/analytics" class="nav-link">Analytics</router-link>
     </div>
     <div class="nav-actions">
+      <router-link to="/profile" class="nav-link">Profile</router-link>
       <button class="nav-action" @click="logout">Logout</button>
       <!-- Changed to button -->
     </div>
