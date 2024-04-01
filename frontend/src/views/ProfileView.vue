@@ -3,13 +3,38 @@
     <nav class="navbar">
       <NavbarComponent />
     </nav>
+    <v-dialog v-model="showPasswordDialog" persistent max-width="290">
+      <v-card>
+        <v-card-title class="headline">Confirm Password</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="passwordConfirm"
+            :type="showPassword ? 'text' : 'password'"
+            label="Password"
+            counter
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append="showPassword = !showPassword"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" text @click="confirmPassword"
+            >Confirm</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <div class="main-content">
+      <div v-if="message" class="alert">
+        {{ message }}
+      </div>
       <div class="center-content">
         <div
           class="header"
           style="position: relative; display: flex; justify-content: center"
         >
           <h1>Profile</h1>
+          <br />
           <v-icon
             class="edit-icon"
             @click="editProfileToggle"
@@ -31,9 +56,9 @@
             </span>
             <input
               v-if="editProfile"
-              v-model="newUsername.value"
+              v-model="newUsernameConfirm"
               class="edit-input"
-              :placeholder="newUsername"
+              :placeholder="newUsernameConfirm"
             />
           </div>
           <div class="detail">
@@ -43,9 +68,9 @@
             </span>
             <input
               v-if="editProfile"
-              v-model="newDisplayName.value"
+              v-model="newDisplayNameConfirm"
               class="edit-input"
-              :placeholder="newDisplayName"
+              :placeholder="newUsernameConfirm"
             />
           </div>
           <div v-if="editProfile">
@@ -67,7 +92,11 @@
               />
               <br />
             </div>
-            <v-btn color="green" class="white--text" style="margin-top: 10px"
+            <v-btn
+              @click="submitChanges"
+              color="green"
+              class="white--text"
+              style="margin-top: 10px"
               >Submit
             </v-btn>
           </div>
@@ -80,16 +109,22 @@
 <script setup>
 import NavbarComponent from "@/components/NavbarComponent.vue";
 import axios from "axios";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import "vuetify/dist/vuetify.min.css";
 
-const userInfo = ref("");
-const newDisplayName = ref("");
-const newUsername = ref("");
+let userInfo = ref(null);
+
+let showPasswordDialog = ref(false);
+let passwordConfirm = ref("");
+let showPassword = ref(false);
+let newDisplayNameConfirm = ref("");
+let newUsernameConfirm = ref("");
 const editProfile = ref(false);
 const changePassword = ref(false);
+const message = ref("");
 
 const editProfileToggle = () => {
+  showPasswordDialog.value = true;
   editProfile.value = !editProfile.value;
 };
 
@@ -97,15 +132,78 @@ const changePasswordToggle = () => {
   changePassword.value = !changePassword.value;
 };
 
+const confirmPassword = () => {
+  showPasswordDialog.value = false;
+};
+
+const submitChanges = async () => {
+  if (newUsernameConfirm.value !== userInfo.value.username) {
+    try {
+      const response = await axios.put("/api/user/update-username", null, {
+        params: {
+          newUsername: newUsernameConfirm.value,
+        },
+      });
+
+      if (response.data.success) {
+        userInfo.value.username = newUsernameConfirm.value;
+        message.value = response.data.message;
+        let formData = new FormData();
+        formData.append("username", newUsernameConfirm.value);
+        formData.append("password"); // Assuming you have the current password in userInfo
+        let loginResponse = await axios.post("/api/login", formData);
+
+        if (loginResponse.data.success) {
+          userInfo.value.username = newUsernameConfirm.value;
+          message.value = response.data.message;
+        } else {
+          message.value = "Re-authentication failed. Please login again.";
+        }
+      }
+    } catch (error) {
+      message.value = error.data;
+    }
+  }
+  if (newDisplayNameConfirm.value !== userInfo.value.displayName) {
+    try {
+      const response = await axios.put("/api/user/update-display-name", null, {
+        params: {
+          newDisplayName: newDisplayNameConfirm.value,
+        },
+      });
+
+      if (response.data.success) {
+        userInfo.value.displayName = newDisplayNameConfirm.value;
+        message.value = response.data.message;
+      }
+    } catch (error) {
+      message.value = error.data;
+    }
+  }
+  editProfile.value = false;
+};
+
 onMounted(async () => {
   try {
     const response = await axios.get("/api/whoami");
     userInfo.value = response.data;
-    newDisplayName.value = userInfo.value.displayName;
-    newUsername.value = userInfo.value.username;
+
+    // Initialize newDisplayNameConfirm and newUsernameConfirm with fetched data
+    newDisplayNameConfirm.value = userInfo.value.displayName;
+    newUsernameConfirm.value = userInfo.value.username;
   } catch (error) {
-    userInfo.value = error.data;
+    console.error(error);
   }
+  // Wait for userInfo to be computed
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axios.get("/api/whoami");
+      userInfo.value = response.data;
+    } catch (error) {
+      userInfo.value = error.data;
+    }
+  };
+  watchEffect(fetchUserInfo);
 });
 </script>
 
@@ -213,5 +311,13 @@ onMounted(async () => {
   border: 1px solid black;
   border-radius: 5px;
   width: 150px;
+}
+
+.alert {
+  background-color: #0a196e; /* Red background */
+  color: white; /* White text */
+  margin-bottom: 15px; /* Some bottom margin */
+  padding: 20px; /* Some padding */
+  border-radius: 4px; /* Little rounded corners */
 }
 </style>
