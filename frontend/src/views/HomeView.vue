@@ -19,7 +19,20 @@
         <div class="overview-cards">
           <div class="card" v-for="item in overviewItems" :key="item.title">
             <h3>{{ item.title }}</h3>
-            <p>{{ item.value }}</p>
+            <p
+              :class="{
+                'positive-balance': item.title === 'Balance' && item.value >= 0,
+                'negative-balance': item.title === 'Balance' && item.value < 0,
+              }"
+            >
+              {{
+                item.title === "Balance"
+                  ? item.value >= 0
+                    ? item.value.toFixed(2)
+                    : "-" + Math.abs(item.value).toFixed(2)
+                  : item.value
+              }}
+            </p>
           </div>
         </div>
 
@@ -31,20 +44,49 @@
           <div class="expenseGraph">
             <DefaultChart />
           </div>
-          <!-- Placeholder for budget graph -->
         </div>
 
         <!-- Categories with Biggest Expense Section -->
+        <!-- Categories with Biggest Expense Section -->
         <div class="categories-expense">
           <h2>Categories: Biggest Expenses</h2>
-          <!-- Placeholders for categories -->
+          <div class="expense-items">
+            <div
+              class="expense-item"
+              v-for="expense in topExpenditures"
+              :key="expense.tagId"
+            >
+              <div class="category-name">{{ expense.tagName }}</div>
+              <div class="category-value">
+                ${{ expense.totalExpenditure.toFixed(2) }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Shortcuts Section -->
-      <aside class="shortcuts-section">
-        <h2>Shortcuts</h2>
-        <!-- Placeholder for shortcuts -->
+      <!-- Favourites Section -->
+      <aside class="favorites-section">
+        <h2>Favorites</h2>
+        <div class="favorites-container" v-if="favoritesData.length > 0">
+          <button
+            v-for="favorite in favoritesData"
+            :key="favorite.id"
+            :class="{
+              'favorite-button': true,
+              income: favorite.transactionType === 'INCOME',
+              expenditure: favorite.transactionType === 'EXPENDITURE',
+            }"
+            :style="{
+              backgroundImage: favorite.resourceURI
+                ? `url(${favorite.resourceURI})`
+                : '',
+            }"
+            @click="navigateWithFavorite(favorite)"
+          >
+            {{ favorite.notes }}
+          </button>
+        </div>
       </aside>
     </div>
   </div>
@@ -65,11 +107,9 @@ export default {
   },
   data: () => ({
     userName: "",
-    overviewItems: [
-      { title: "Expenses", value: "$1,200" },
-      { title: "Balance", value: "$5,000" },
-      { title: "Revenues", value: "$6,200" },
-    ],
+    overviewItems: [],
+    topExpenditures: [],
+    favoritesData: [],
   }),
   computed: {
     greeting() {
@@ -88,6 +128,46 @@ export default {
       .catch((error) => {
         console.error("Error fetching user info:", error.message);
       });
+    axios
+      .get("/api/user/weekly-finance-summary")
+      .then((response) => {
+        const data = response.data;
+        this.overviewItems = [
+          { title: "Expenses", value: data.totalExpenditure },
+          { title: "Balance", value: data.balance },
+          { title: "Revenues", value: data.totalIncome },
+        ];
+      })
+      .catch((error) => {
+        console.error("Error fetching financial summary:", error.message);
+      });
+    axios
+      .get("/api/user/top-expenditures")
+      .then((response) => {
+        this.topExpenditures = response.data.data;
+      })
+      .catch((error) => {
+        console.error("Error fetching top expenditures:", error.message);
+      });
+    axios
+      .get("/api/transaction-blueprints/get-transaction-blueprints/favorites")
+      .then((response) => {
+        this.favoritesData = response.data.transactionBlueprintsList;
+        // Optionally, process the data if needed
+      })
+      .catch((error) => {
+        console.error("Error fetching favorites:", error);
+        alert("Failed to fetch favorites.");
+      });
+  },
+  methods: {
+    // In a method within your Vue component
+    navigateWithFavorite(favorite) {
+      this.$router.push({
+        path: "/income-expense-creation",
+        query: { favoriteData: JSON.stringify(favorite) },
+      });
+    },
   },
 };
 </script>
@@ -150,6 +230,12 @@ export default {
   transition: transform 0.3s ease;
 }
 
+.overview-cards .card p {
+  font-size: 1.5rem; /* Increasing size to make text more pronounced */
+  font-weight: 500; /* Slightly bolder text for better visibility */
+  margin-top: 10px; /* Added space between title and value */
+}
+
 .overview-cards .card:hover {
   transform: translateY(-5px);
 }
@@ -160,16 +246,6 @@ export default {
   text-align: center;
   font-size: 1.2rem;
   margin-bottom: 20px;
-}
-
-.shortcuts-section {
-  width: 300px;
-  background-color: #e2e8f0; /* Softer shade */
-  padding: 20px;
-  text-align: center;
-  font-size: 1.2rem;
-  margin-right: 20px; /* Add right margin */
-  margin-bottom: 20px; /* Add right margin */
 }
 
 .budget-graph {
@@ -199,6 +275,108 @@ export default {
   flex-direction: column;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */
   margin-left: 20px;
+}
+
+.positive-balance {
+  color: green;
+}
+
+.negative-balance {
+  color: red;
+}
+
+.categories-expense {
+  background-color: #f7fafc;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.expense-items {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(220px, 1fr)
+  ); /* Responsive grid */
+  gap: 20px; /* Consistent spacing */
+  padding: 20px 0; /* Extra vertical spacing */
+}
+
+.expense-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.expense-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+  font-size: 1rem; /* Increased font size for better readability */
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 10px; /* Adjusted spacing */
+}
+
+.category-value {
+  font-size: 1.25rem; /* Larger font size for emphasis */
+  font-weight: bold;
+  color: #2c3e50;
+  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.favorites-section {
+  padding: 20px;
+  background-color: #e2e8f0; /* Soft background color for the section */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  margin: 20px; /* Ensure some spacing around the section */
+  text-align: center; /* Center the title and content */
+}
+
+.favorites-container {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center; /* Center buttons horizontally */
+  gap: 10px; /* Space between buttons */
+}
+
+.favorite-button {
+  padding: 10px 20px;
+  color: white; /* Text color */
+  border: none; /* Remove default border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Cursor indication for clickable elements */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+  font-size: 0.9rem; /* Adjusted text size for better fit */
+  background-size: cover; /* Cover background for images */
+  background-position: center; /* Center background images */
+  text-align: center; /* Ensure text is centered */
+  width: 80%; /* Define a standard width for uniformity */
+}
+
+.income {
+  background-color: #4caf50; /* Green background for income */
+}
+
+.expenditure {
+  background-color: #f44336; /* Red background for expenditure */
+}
+
+.favorite-button:hover {
+  opacity: 0.9; /* Slight opacity change on hover for feedback */
 }
 
 .budgetTarget > * {

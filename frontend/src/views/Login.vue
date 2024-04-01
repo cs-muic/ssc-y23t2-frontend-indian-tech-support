@@ -80,12 +80,12 @@
               <v-row>
                 <v-col cols="12">
                   <v-sheet
-                    class="d-flex justify-center align-center position-relative"
+                    class="d-flex justify-center align-center position-relative upload-box"
                     outlined
                     tile
                     color="grey lighten-2"
                     style="
-                      height: 250px;
+                      height: 200px; /* Adjusted height */
                       cursor: pointer;
                       border-style: dashed;
                       border-width: 2px;
@@ -115,13 +115,13 @@
                   </v-sheet>
                 </v-col>
               </v-row>
-              <v-btn color="primary" class="mr-4" @click="signup"
+              <v-btn color="primary" class="mr-4 mt-3" @click="signup"
                 >Sign Up</v-btn
               >
-              <v-btn color="error" class="mr-4" @click="resetSignupForm"
+              <v-btn color="error" class="mr-4 mt-3" @click="resetSignupForm"
                 >Reset</v-btn
               >
-              <v-btn text @click="toggleForm">Back to Login</v-btn>
+              <v-btn text class="mt-3" @click="toggleForm">Back to Login</v-btn>
             </v-form>
           </div>
         </transition>
@@ -173,8 +173,56 @@ export default {
     onFileChange(e) {
       const files = e.target.files || e.dataTransfer.files;
       if (!files.length) return;
-      this.avatarFile = files[0]; // Store the file
+      this.avatarFile = files[0]; // Store the file temporarily
       this.avatarName = files[0].name;
+      this.processImage(files[0]); // Process the image for cropping
+    },
+    async processImage(file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const img = new Image();
+        img.onload = async () => {
+          // Determine the size of the square canvas based on the smaller dimension of the image
+          const size = Math.min(img.width, img.height);
+          const offsetX = (img.width - size) / 2;
+          const offsetY = (img.height - size) / 2;
+
+          // Create a canvas that matches the size of the circular crop
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          canvas.width = size;
+          canvas.height = size;
+
+          // Begin path for circular clipping region
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.clip();
+
+          // Draw the image onto the canvas, centered within the clipping region
+          ctx.drawImage(
+            img,
+            offsetX,
+            offsetY,
+            img.width - offsetX * 2,
+            img.height - offsetY * 2,
+            0,
+            0,
+            size,
+            size
+          );
+
+          // Convert the canvas content back to a Blob and then to a File
+          canvas.toBlob((blob) => {
+            this.avatarFile = new File([blob], "cropped_" + file.name, {
+              type: "image/png",
+            });
+            this.avatarName = this.avatarFile.name; // Update the avatar name to reflect the cropped file
+          }, "image/png");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     },
     async signup() {
       if (this.$refs.signupForm.validate()) {
@@ -235,11 +283,13 @@ export default {
 .flip-leave-to {
   transform: rotateY(180deg);
 }
+
 .bg-logo-test {
   background-image: url("../assets/TestBG.webp");
   background-size: cover; /* Cover the entire container */
   background-position: center; /* Center the background image */
 }
+
 .form-container {
   background-color: rgba(
     245,
@@ -252,6 +302,7 @@ export default {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   color: white; /* Ensure fallback text color is white */
 }
+
 /* For labels, placeholders, and input text, since they might not inherit white color correctly */
 .v-label,
 .v-input__slot {
