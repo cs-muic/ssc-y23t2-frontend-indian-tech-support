@@ -47,8 +47,21 @@
         </div>
 
         <!-- Categories with Biggest Expense Section -->
+        <!-- Categories with Biggest Expense Section -->
         <div class="categories-expense">
           <h2>Categories: Biggest Expenses</h2>
+          <div class="expense-items">
+            <div
+              class="expense-item"
+              v-for="expense in topExpenditures"
+              :key="expense.tagId"
+            >
+              <div class="category-name">{{ expense.tagName }}</div>
+              <div class="category-value">
+                ${{ expense.totalExpenditure.toFixed(2) }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -76,6 +89,7 @@ export default {
   data: () => ({
     userName: "",
     overviewItems: [],
+    topExpenditures: [],
   }),
   computed: {
     greeting() {
@@ -106,6 +120,14 @@ export default {
       })
       .catch((error) => {
         console.error("Error fetching financial summary:", error.message);
+      });
+    axios
+      .get("/api/user/top-expenditures")
+      .then((response) => {
+        this.topExpenditures = response.data.data;
+      })
+      .catch((error) => {
+        console.error("Error fetching top expenditures:", error.message);
       });
   },
 };
@@ -232,6 +254,58 @@ export default {
 
 .negative-balance {
   color: red;
+}
+
+.categories-expense {
+  background-color: #f7fafc;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.expense-items {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(220px, 1fr)
+  ); /* Responsive grid */
+  gap: 20px; /* Consistent spacing */
+  padding: 20px 0; /* Extra vertical spacing */
+}
+
+.expense-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.expense-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+  font-size: 1rem; /* Increased font size for better readability */
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 10px; /* Adjusted spacing */
+}
+
+.category-value {
+  font-size: 1.25rem; /* Larger font size for emphasis */
+  font-weight: bold;
+  color: #2c3e50;
+  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .budgetTarget > * {
