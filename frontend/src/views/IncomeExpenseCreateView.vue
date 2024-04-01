@@ -254,6 +254,17 @@ export default {
       },
     };
   },
+  mounted() {
+    this.$nextTick(() => {
+      // Assuming the data is passed as a query parameter named 'favoriteData'
+      if (this.$route.query.favoriteData) {
+        const favoriteData = JSON.parse(
+          decodeURIComponent(this.$route.query.favoriteData)
+        );
+        this.populateFormWithFavorite(favoriteData);
+      }
+    });
+  },
   watch: {
     "form.tagId": function (newVal, oldVal) {
       if (newVal !== oldVal) {

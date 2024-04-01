@@ -65,9 +65,28 @@
         </div>
       </div>
 
-      <!-- Shortcuts Section -->
-      <aside class="shortcuts-section">
-        <h2>Shortcuts</h2>
+      <!-- Favourites Section -->
+      <aside class="favorites-section">
+        <h2>Favorites</h2>
+        <div class="favorites-container" v-if="favoritesData.length > 0">
+          <button
+            v-for="favorite in favoritesData"
+            :key="favorite.id"
+            :class="{
+              'favorite-button': true,
+              income: favorite.transactionType === 'INCOME',
+              expenditure: favorite.transactionType === 'EXPENDITURE',
+            }"
+            :style="{
+              backgroundImage: favorite.resourceURI
+                ? `url(${favorite.resourceURI})`
+                : '',
+            }"
+            @click="navigateWithFavorite(favorite)"
+          >
+            {{ favorite.notes }}
+          </button>
+        </div>
       </aside>
     </div>
   </div>
@@ -90,6 +109,7 @@ export default {
     userName: "",
     overviewItems: [],
     topExpenditures: [],
+    favoritesData: [],
   }),
   computed: {
     greeting() {
@@ -129,6 +149,25 @@ export default {
       .catch((error) => {
         console.error("Error fetching top expenditures:", error.message);
       });
+    axios
+      .get("/api/transaction-blueprints/get-transaction-blueprints/favorites")
+      .then((response) => {
+        this.favoritesData = response.data.transactionBlueprintsList;
+        // Optionally, process the data if needed
+      })
+      .catch((error) => {
+        console.error("Error fetching favorites:", error);
+        alert("Failed to fetch favorites.");
+      });
+  },
+  methods: {
+    // In a method within your Vue component
+    navigateWithFavorite(favorite) {
+      this.$router.push({
+        path: "/income-expense-creation",
+        query: { favoriteData: JSON.stringify(favorite) },
+      });
+    },
   },
 };
 </script>
@@ -207,16 +246,6 @@ export default {
   text-align: center;
   font-size: 1.2rem;
   margin-bottom: 20px;
-}
-
-.shortcuts-section {
-  width: 300px;
-  background-color: #e2e8f0; /* Softer shade */
-  padding: 20px;
-  text-align: center;
-  font-size: 1.2rem;
-  margin-right: 20px; /* Add right margin */
-  margin-bottom: 20px; /* Add right margin */
 }
 
 .budget-graph {
@@ -306,6 +335,48 @@ export default {
   background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.favorites-section {
+  padding: 20px;
+  background-color: #e2e8f0; /* Soft background color for the section */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  margin: 20px; /* Ensure some spacing around the section */
+  text-align: center; /* Center the title and content */
+}
+
+.favorites-container {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center; /* Center buttons horizontally */
+  gap: 10px; /* Space between buttons */
+}
+
+.favorite-button {
+  padding: 10px 20px;
+  color: white; /* Text color */
+  border: none; /* Remove default border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Cursor indication for clickable elements */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+  font-size: 0.9rem; /* Adjusted text size for better fit */
+  background-size: cover; /* Cover background for images */
+  background-position: center; /* Center background images */
+  text-align: center; /* Ensure text is centered */
+  width: 80%; /* Define a standard width for uniformity */
+}
+
+.income {
+  background-color: #4caf50; /* Green background for income */
+}
+
+.expenditure {
+  background-color: #f44336; /* Red background for expenditure */
+}
+
+.favorite-button:hover {
+  opacity: 0.9; /* Slight opacity change on hover for feedback */
 }
 
 .budgetTarget > * {
