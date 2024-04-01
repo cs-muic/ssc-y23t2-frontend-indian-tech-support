@@ -76,7 +76,7 @@
               {{ tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A" }}
             </td>
             <td>
-              {{ item.secondaryTagName || "N/A" }}
+              {{ findSecondaryTagName(item.tagId2) }}
             </td>
             <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
@@ -238,6 +238,7 @@ export default {
       activeTab: "favorites",
       tags: [], // Initialize tags from the imported JSON file
       secondaryTags: [], // Will be dynamically filled based on main category selection
+      allSecondaryTags: [], //All secondary tags from the backend to make recurring table work
       favoritesData: [], // Define the property here
       recurringData: [], // Define the property here
       form: {
@@ -276,8 +277,27 @@ export default {
     this.fetchTags();
     this.fetchTransactionBlueprints();
     this.fetchFavorites();
+    this.fetchAllSecondaryTags();
   },
   methods: {
+    async fetchAllSecondaryTags() {
+      try {
+        const response = await axios.get("/api/user-all-secondary-tags");
+        if (response.data && response.data.loggedIn) {
+          this.allSecondaryTags = response.data.secondaryTags;
+        } else {
+          console.error(
+            "Failed to fetch all secondary tags or user not logged in."
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching all secondary tags:", error);
+      }
+    },
+    findSecondaryTagName(id) {
+      const tag = this.allSecondaryTags.find((tag) => tag.id === id);
+      return tag ? tag.secondaryTagName : "N/A";
+    },
     async fetchTags() {
       try {
         const response = await axios.get("/api/tag");
