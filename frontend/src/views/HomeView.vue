@@ -19,7 +19,20 @@
         <div class="overview-cards">
           <div class="card" v-for="item in overviewItems" :key="item.title">
             <h3>{{ item.title }}</h3>
-            <p>{{ item.value }}</p>
+            <p
+              :class="{
+                'positive-balance': item.title === 'Balance' && item.value >= 0,
+                'negative-balance': item.title === 'Balance' && item.value < 0,
+              }"
+            >
+              {{
+                item.title === "Balance"
+                  ? item.value >= 0
+                    ? item.value.toFixed(2)
+                    : "-" + Math.abs(item.value).toFixed(2)
+                  : item.value
+              }}
+            </p>
           </div>
         </div>
 
@@ -31,20 +44,17 @@
           <div class="expenseGraph">
             <DefaultChart />
           </div>
-          <!-- Placeholder for budget graph -->
         </div>
 
         <!-- Categories with Biggest Expense Section -->
         <div class="categories-expense">
           <h2>Categories: Biggest Expenses</h2>
-          <!-- Placeholders for categories -->
         </div>
       </div>
 
       <!-- Shortcuts Section -->
       <aside class="shortcuts-section">
         <h2>Shortcuts</h2>
-        <!-- Placeholder for shortcuts -->
       </aside>
     </div>
   </div>
@@ -65,11 +75,7 @@ export default {
   },
   data: () => ({
     userName: "",
-    overviewItems: [
-      { title: "Expenses", value: "$1,200" },
-      { title: "Balance", value: "$5,000" },
-      { title: "Revenues", value: "$6,200" },
-    ],
+    overviewItems: [],
   }),
   computed: {
     greeting() {
@@ -87,6 +93,19 @@ export default {
       })
       .catch((error) => {
         console.error("Error fetching user info:", error.message);
+      });
+    axios
+      .get("/api/user/weekly-finance-summary")
+      .then((response) => {
+        const data = response.data;
+        this.overviewItems = [
+          { title: "Expenses", value: data.totalExpenditure },
+          { title: "Balance", value: data.balance },
+          { title: "Revenues", value: data.totalIncome },
+        ];
+      })
+      .catch((error) => {
+        console.error("Error fetching financial summary:", error.message);
       });
   },
 };
@@ -150,6 +169,12 @@ export default {
   transition: transform 0.3s ease;
 }
 
+.overview-cards .card p {
+  font-size: 1.5rem; /* Increasing size to make text more pronounced */
+  font-weight: 500; /* Slightly bolder text for better visibility */
+  margin-top: 10px; /* Added space between title and value */
+}
+
 .overview-cards .card:hover {
   transform: translateY(-5px);
 }
@@ -199,6 +224,14 @@ export default {
   flex-direction: column;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow effect */
   margin-left: 20px;
+}
+
+.positive-balance {
+  color: green;
+}
+
+.negative-balance {
+  color: red;
 }
 
 .budgetTarget > * {
