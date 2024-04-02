@@ -116,6 +116,7 @@ let userInfo = ref(null);
 
 let showPasswordDialog = ref(false);
 let passwordConfirm = ref("");
+let passwordForRelogin = ref("");
 let showPassword = ref(false);
 let newDisplayNameConfirm = ref("");
 let newUsernameConfirm = ref("");
@@ -124,16 +125,36 @@ const changePassword = ref(false);
 const message = ref("");
 
 const editProfileToggle = () => {
-  showPasswordDialog.value = true;
   editProfile.value = !editProfile.value;
+  showPasswordDialog.value = editProfile.value;
 };
 
 const changePasswordToggle = () => {
   changePassword.value = !changePassword.value;
 };
 
-const confirmPassword = () => {
-  showPasswordDialog.value = false;
+const confirmPassword = async () => {
+  try {
+    const response = await axios.get("/api/user/password-check", {
+      params: {
+        password: passwordConfirm.value,
+      },
+    });
+
+    if (response.data.success) {
+      // Password matches, close the dialog
+      showPasswordDialog.value = false;
+      passwordForRelogin.value = passwordConfirm.value;
+      message.value = response.data.message;
+    } else {
+      // Password does not match, show an error message
+      message.value = response.data.message;
+      editProfileToggle();
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  passwordConfirm.value = "";
 };
 
 const submitChanges = async () => {
@@ -150,7 +171,7 @@ const submitChanges = async () => {
         message.value = response.data.message;
         let formData = new FormData();
         formData.append("username", newUsernameConfirm.value);
-        formData.append("password"); // Assuming you have the current password in userInfo
+        formData.append("password", passwordForRelogin.value); // Assuming you have the current password in userInfo
         let loginResponse = await axios.post("/api/login", formData);
 
         if (loginResponse.data.success) {
