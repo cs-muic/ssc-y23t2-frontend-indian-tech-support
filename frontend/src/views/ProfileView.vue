@@ -43,10 +43,19 @@
           </v-icon>
         </div>
         <div class="profile-picture">
-          <img src="https://via.placeholder.com/150" alt="Profile Picture" />
+          <img
+            :src="`https://ssc-proj-user-avatar.sgp1.digitaloceanspaces.com/${userInfo.avatarId}`"
+            alt="Profile Picture"
+            width="150"
+          />
         </div>
         <div class="edit-icon" v-if="editProfile">
-          <button>Change Profile Picture</button>
+          <button
+            class="change-profile-picture-button"
+            @click="changeProfilePicture"
+          >
+            Change Profile Picture
+          </button>
         </div>
         <div class="profile-details">
           <div class="detail">
@@ -128,6 +137,9 @@ const editProfile = ref(false);
 const changePassword = ref(false);
 const message = ref("");
 
+const changeProfilePicture = () => {
+  // Add your toggle functionality here
+};
 const editProfileToggle = () => {
   editProfile.value = !editProfile.value;
   showPasswordDialog.value = editProfile.value;
@@ -152,8 +164,8 @@ const confirmPassword = async () => {
       passwordForRelogin.value = passwordConfirm.value;
     } else {
       editProfileToggle();
+      message.value += "\n" + response.data.message;
     }
-    message.value += "\n" + response.data.message;
   } catch (error) {
     console.error(error);
   }
@@ -353,6 +365,15 @@ onMounted(async () => {
 
 .edit-icon {
   text-align: center;
+}
+
+.change-profile-picture-button {
+  font-weight: bold;
+  background-color: #ffac00;
+  color: black;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .edit-input {
