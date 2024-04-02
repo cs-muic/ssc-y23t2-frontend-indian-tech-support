@@ -3,22 +3,50 @@
     <div class="nav-links">
       <router-link to="/" class="nav-link">Home</router-link>
       <router-link to="/income-expense-creation" class="nav-link"
-        >New Income/Expenditure</router-link
-      >
+        >New Income/Expenditure
+      </router-link>
       <router-link to="/history" class="nav-link">History</router-link>
       <router-link to="/analytics" class="nav-link">Analytics</router-link>
     </div>
-    <div class="nav-actions">
-      <router-link to="/profile" class="nav-link">Profile</router-link>
+    <div class="profile-pic">
+      <router-link to="/profile" class="nav-link">
+        <img
+          :src="`https://ssc-proj-user-avatar.sgp1.digitaloceanspaces.com/${userInfo.avatarId}`"
+          width="50"
+          alt="Profile"
+        />
+      </router-link>
       <button class="nav-action" @click="logout">Logout</button>
       <!-- Changed to button -->
     </div>
   </nav>
 </template>
+<script setup>
+import { onMounted, ref, watchEffect } from "vue";
+import axios from "axios";
 
+let userInfo = ref(null);
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/whoami");
+    userInfo.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+  // Wait for userInfo to be computed
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axios.get("/api/whoami");
+      userInfo.value = response.data;
+    } catch (error) {
+      userInfo.value = error.data;
+    }
+  };
+  watchEffect(fetchUserInfo);
+});
+</script>
 <script>
 import Vue from "vue";
-
 export default {
   name: "NavbarComponent",
   methods: {
@@ -56,13 +84,10 @@ export default {
   text-decoration: underline;
 }
 
-.nav-actions {
-  /* To align the logout or other actions to the right */
-  margin-left: auto;
-}
-
-.router-link-exact-active {
-  color: #4caf50; /* Highlight color for active menu item */
+.profile-pic {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
 }
 
 .nav-action {
