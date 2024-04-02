@@ -12,6 +12,7 @@
             :type="showPassword ? 'text' : 'password'"
             label="Password"
             counter
+            @keyup.enter="confirmPassword"
             :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append="showPassword = !showPassword"
           ></v-text-field>
@@ -19,8 +20,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="green darken-1" text @click="confirmPassword"
-            >Confirm</v-btn
-          >
+            >Confirm
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -34,7 +35,6 @@
           style="position: relative; display: flex; justify-content: center"
         >
           <h1>Profile</h1>
-          <br />
           <v-icon
             class="edit-icon"
             @click="editProfileToggle"
@@ -81,11 +81,13 @@
             </div>
             <div v-if="changePassword">
               <input
+                v-model="newPassword"
                 class="password-text"
                 type="password"
                 placeholder="New Password"
               /><br />
               <input
+                v-model="confirmNewPassword"
                 class="password-text"
                 type="password"
                 placeholder="Confirm New Password"
@@ -120,6 +122,8 @@ let passwordForRelogin = ref("");
 let showPassword = ref(false);
 let newDisplayNameConfirm = ref("");
 let newUsernameConfirm = ref("");
+let newPassword = ref("");
+let confirmNewPassword = ref("");
 const editProfile = ref(false);
 const changePassword = ref(false);
 const message = ref("");
@@ -134,6 +138,7 @@ const changePasswordToggle = () => {
 };
 
 const confirmPassword = async () => {
+  message.value = "";
   try {
     const response = await axios.get("/api/user/password-check", {
       params: {
@@ -145,12 +150,10 @@ const confirmPassword = async () => {
       // Password matches, close the dialog
       showPasswordDialog.value = false;
       passwordForRelogin.value = passwordConfirm.value;
-      message.value = response.data.message;
     } else {
-      // Password does not match, show an error message
-      message.value = response.data.message;
       editProfileToggle();
     }
+    message.value += "\n" + response.data.message;
   } catch (error) {
     console.error(error);
   }
@@ -158,7 +161,30 @@ const confirmPassword = async () => {
 };
 
 const submitChanges = async () => {
-  if (newUsernameConfirm.value !== userInfo.value.username) {
+  message.value = "";
+  if (newPassword.value) {
+    try {
+      // Send newPassword and confirmNewPassword to the /api/user/update-password endpoint
+      const passwordResponse = await axios.put(
+        "/api/user/update-password",
+        null,
+        {
+          params: {
+            newPassword: newPassword.value,
+            confirmPassword: confirmNewPassword.value,
+          },
+        }
+      );
+
+      if (passwordResponse.data.success) {
+        passwordForRelogin.value = newPassword.value;
+      }
+      message.value += "\n" + passwordResponse.data.message;
+    } catch (error) {
+      message.value += "\n" + error.data;
+    }
+  }
+  if (newUsernameConfirm.value) {
     try {
       const response = await axios.put("/api/user/update-username", null, {
         params: {
@@ -167,8 +193,7 @@ const submitChanges = async () => {
       });
 
       if (response.data.success) {
-        userInfo.value.username = newUsernameConfirm.value;
-        message.value = response.data.message;
+        message.value += "\n" + response.data.message;
         let formData = new FormData();
         formData.append("username", newUsernameConfirm.value);
         formData.append("password", passwordForRelogin.value); // Assuming you have the current password in userInfo
@@ -176,16 +201,19 @@ const submitChanges = async () => {
 
         if (loginResponse.data.success) {
           userInfo.value.username = newUsernameConfirm.value;
-          message.value = response.data.message;
         } else {
-          message.value = "Re-authentication failed. Please login again.";
+          message.value +=
+            "\n" + "Re-authentication failed. Please login again.";
         }
       }
     } catch (error) {
-      message.value = error.data;
+      message.value += "\n" + error.data;
     }
+    userInfo.value.username = newUsernameConfirm.value;
+  } else {
+    message.value += "\n" + "Username cannot be empty.";
   }
-  if (newDisplayNameConfirm.value !== userInfo.value.displayName) {
+  if (newDisplayNameConfirm.value) {
     try {
       const response = await axios.put("/api/user/update-display-name", null, {
         params: {
@@ -195,13 +223,17 @@ const submitChanges = async () => {
 
       if (response.data.success) {
         userInfo.value.displayName = newDisplayNameConfirm.value;
-        message.value = response.data.message;
       }
+      message.value += "\n" + response.data.message;
     } catch (error) {
-      message.value = error.data;
+      message.value += "\n" + error.data;
     }
+  } else {
+    message.value += "\n" + "Display Name cannot be empty.";
   }
   editProfile.value = false;
+  newPassword.value = "";
+  confirmNewPassword.value = "";
 };
 
 onMounted(async () => {
