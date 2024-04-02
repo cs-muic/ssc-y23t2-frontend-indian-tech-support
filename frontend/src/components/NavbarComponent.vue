@@ -12,8 +12,9 @@
       <router-link to="/profile" class="nav-link">
         <img
           :src="`https://ssc-proj-user-avatar.sgp1.digitaloceanspaces.com/${userInfo.avatarId}`"
-          width="50"
+          width="40"
           alt="Profile"
+          title="Profile"
         />
       </router-link>
       <button class="nav-action" @click="logout">Logout</button>

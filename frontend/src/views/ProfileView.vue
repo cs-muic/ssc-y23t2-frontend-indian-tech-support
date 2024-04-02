@@ -42,20 +42,57 @@
             >mdi-pencil
           </v-icon>
         </div>
-        <div class="profile-picture">
+        <div class="profile-picture" v-if="!editProfilePicture">
           <img
             :src="`https://ssc-proj-user-avatar.sgp1.digitaloceanspaces.com/${userInfo.avatarId}`"
             alt="Profile Picture"
             width="150"
           />
         </div>
-        <div class="edit-icon" v-if="editProfile">
-          <button
-            class="change-profile-picture-button"
-            @click="changeProfilePicture"
-          >
-            Change Profile Picture
-          </button>
+        <div v-else>
+          <v-row>
+            <v-col cols="12">
+              <v-sheet
+                class="d-flex justify-center align-center position-relative upload-box"
+                outlined
+                tile
+                color="grey lighten-2"
+                style="
+                  height: 200px; /* Adjusted height */
+                  cursor: pointer;
+                  border-style: dashed;
+                  border-width: 2px;
+                  border-radius: 5px;
+                  margin-bottom: 20px;
+                  width: 350px;
+                "
+                @click="openFilePicker"
+                @drop.prevent="onDrop"
+                @dragover.prevent
+                @dragenter.prevent
+                @dragleave.prevent
+                v-bind:class="{ 'bg-light-blue': dragActive }"
+              >
+                <input
+                  type="file"
+                  ref="fileInput"
+                  style="display: none"
+                  @change="onFileChange"
+                  accept="image/*"
+                />
+                <v-icon x-large color="primary">mdi-upload</v-icon>
+                <div v-if="avatarName" class="mt-2 text-h6">
+                  {{ avatarName }}
+                </div>
+                <div v-else class="mt-2 text-h6">
+                  Click or drag an image here to upload
+                </div>
+              </v-sheet>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-if="editProfile" class="change-profile-picture-button">
+          <button @click="changeProfilePicture">Change Profile Picture</button>
         </div>
         <div class="profile-details">
           <div class="detail">
@@ -136,9 +173,74 @@ let confirmNewPassword = ref("");
 const editProfile = ref(false);
 const changePassword = ref(false);
 const message = ref("");
+let editProfilePicture = ref(false);
+let fileInput = ref(null);
+let avatarFile = ref(null);
+let avatarName = ref(null);
+let dragActive = ref(false);
+
+const openFilePicker = () => {
+  fileInput.value.click();
+};
+
+const onFileChange = (e) => {
+  const files = e.target.files || e.dataTransfer.files;
+  if (!files.length) return;
+  avatarFile.value = files[0]; // Store the file temporarily
+  avatarName.value = files[0].name;
+  processImage(files[0]); // Process the image for cropping
+};
+
+const processImage = async (file) => {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      // Determine the size of the square canvas based on the smaller dimension of the image
+      const size = Math.min(img.width, img.height);
+      const offsetX = (img.width - size) / 2;
+      const offsetY = (img.height - size) / 2;
+
+      // Create a canvas that matches the size of the circular crop
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = size;
+      canvas.height = size;
+
+      // Begin path for circular clipping region
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2, true);
+      ctx.closePath();
+      ctx.clip();
+
+      // Draw the image onto the canvas, centered within the clipping region
+      ctx.drawImage(
+        img,
+        offsetX,
+        offsetY,
+        img.width - offsetX * 2,
+        img.height - offsetY * 2,
+        0,
+        0,
+        size,
+        size
+      );
+
+      // Convert the canvas content back to a Blob and then to a File
+      canvas.toBlob((blob) => {
+        avatarFile.value = new File([blob], "cropped_" + file.name, {
+          type: "image/png",
+        });
+        avatarName.value = avatarFile.value.name; // Update the avatar name to reflect the cropped file
+      }, "image/png");
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
 
 const changeProfilePicture = () => {
-  // Add your toggle functionality here
+  editProfilePicture.value = !editProfilePicture.value;
 };
 const editProfileToggle = () => {
   editProfile.value = !editProfile.value;
@@ -174,6 +276,20 @@ const confirmPassword = async () => {
 
 const submitChanges = async () => {
   message.value = "";
+  if (avatarFile.value) {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", avatarFile.value);
+      const response = await axios.post("/api/user/update-avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      message.value += "\n" + response.data.message;
+    } catch (error) {
+      message.value += "\n" + error.data;
+    }
+  }
   if (newPassword.value) {
     try {
       // Send newPassword and confirmNewPassword to the /api/user/update-password endpoint
@@ -225,7 +341,7 @@ const submitChanges = async () => {
   } else {
     message.value += "\n" + "Username cannot be empty.";
   }
-  if (newDisplayNameConfirm.value) {
+  if (newDisplayNameConfirm.value !== userInfo.value.displayName) {
     try {
       const response = await axios.put("/api/user/update-display-name", null, {
         params: {
@@ -243,9 +359,18 @@ const submitChanges = async () => {
   } else {
     message.value += "\n" + "Display Name cannot be empty.";
   }
+  editProfilePicture.value = false;
   editProfile.value = false;
   newPassword.value = "";
   confirmNewPassword.value = "";
+};
+const fetchUserInfo = async () => {
+  try {
+    const response = await axios.get("/api/whoami");
+    userInfo.value = response.data;
+  } catch (error) {
+    userInfo.value = error.data;
+  }
 };
 
 onMounted(async () => {
@@ -260,14 +385,6 @@ onMounted(async () => {
     console.error(error);
   }
   // Wait for userInfo to be computed
-  const fetchUserInfo = async () => {
-    try {
-      const response = await axios.get("/api/whoami");
-      userInfo.value = response.data;
-    } catch (error) {
-      userInfo.value = error.data;
-    }
-  };
   watchEffect(fetchUserInfo);
 });
 </script>
@@ -369,11 +486,12 @@ onMounted(async () => {
 
 .change-profile-picture-button {
   font-weight: bold;
-  background-color: #ffac00;
   color: black;
   border: none;
   cursor: pointer;
-  text-decoration: underline;
+  text-align: center;
+  justify-content: center;
+  background-color: orange;
 }
 
 .edit-input {
@@ -385,6 +503,10 @@ onMounted(async () => {
   border: 1px solid black;
   border-radius: 5px;
   width: 150px;
+}
+
+.mt-2.text-h6 {
+  font-size: 12px; /* Adjust as needed */
 }
 
 .alert {
