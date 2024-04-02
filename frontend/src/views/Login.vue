@@ -25,6 +25,7 @@
                 required
                 dark
                 class="text-white"
+                @keyup.enter="validate"
               ></v-text-field>
               <v-btn color="success" class="mr-4" @click="validate"
                 >Login</v-btn
