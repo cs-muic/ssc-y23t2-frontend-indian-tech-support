@@ -187,26 +187,34 @@
         <div class="form-row">
           <div class="form-group">
             <label for="tag">Primary Tag</label>
-            <select v-model="form.tagId" class="form-control" required>
-              <option disabled value="">Select Primary Tag</option>
-              <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-                {{ tag.tagName }}
-              </option>
-            </select>
+            <div class="tag-selection-container">
+              <select v-model="form.tagId" class="form-control" required>
+                <option disabled value="">Select Primary Tag</option>
+                <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+                  {{ tag.tagName }}
+                </option>
+              </select>
+              <button @click="createNewTag" class="tag-plus-button">+</button>
+            </div>
           </div>
 
           <div class="form-group">
             <label for="tag2">Secondary Tag</label>
-            <select v-model="form.tagId2" class="form-control">
-              <option disabled value="" selected>Select Secondary Tag</option>
-              <option
-                v-for="tag in secondaryTags"
-                :key="tag.id"
-                :value="tag.id"
-              >
-                {{ tag.secondaryTagName }}
-              </option>
-            </select>
+            <div class="tag-selection-container">
+              <select v-model="form.tagId2" class="form-control">
+                <option disabled value="" selected>Select Secondary Tag</option>
+                <option
+                  v-for="tag in secondaryTags"
+                  :key="tag.id"
+                  :value="tag.id"
+                >
+                  {{ tag.secondaryTagName }}
+                </option>
+              </select>
+              <button @click="createNewSecondaryTag" class="tag-plus-button">
+                +
+              </button>
+            </div>
           </div>
         </div>
 
@@ -280,6 +288,51 @@ export default {
     this.fetchAllSecondaryTags();
   },
   methods: {
+    async createNewTag() {
+      const tagName = prompt("Enter the name for the new primary tag:");
+      if (tagName) {
+        await axios
+          .post("/api/tag", null, {
+            params: {
+              tagName,
+            },
+          })
+          .then(() => {
+            alert("New primary tag created successfully.");
+            this.fetchTags();
+          })
+          .catch((error) => {
+            console.error("Error creating new primary tag:", error);
+            alert("Failed to create new primary tag.");
+          });
+      }
+    },
+    async createNewSecondaryTag() {
+      if (!this.form.tagId) {
+        alert("Please select a primary tag first.");
+        return;
+      }
+      const secondaryTagName = prompt(
+        "Enter the name for the new secondary tag:"
+      );
+      if (secondaryTagName) {
+        await axios
+          .post("/api/secondary_tag", null, {
+            params: {
+              tagId: this.form.tagId,
+              secondaryTagName,
+            },
+          })
+          .then(() => {
+            alert("New secondary tag created successfully.");
+            this.updateSubcategories(this.form.tagId);
+          })
+          .catch((error) => {
+            console.error("Error creating new primary tag:", error);
+            alert("Failed to create new primary tag.");
+          });
+      }
+    },
     async fetchAllSecondaryTags() {
       try {
         const response = await axios.get("/api/user-all-secondary-tags");
@@ -708,5 +761,29 @@ export default {
 .action-button.delete {
   background-color: #dc3545;
   color: white;
+}
+
+.tag-selection-container {
+  display: flex;
+  align-items: stretch; /* Ensure the button and select align perfectly */
+  border: 1px solid #ced4da; /* Match the dropdown border color */
+  border-radius: 4px; /* Rounded corners for the container */
+  overflow: hidden; /* Ensures the child elements do not overflow the rounded corners */
+}
+
+.tag-plus-button {
+  padding: 6px 12px; /* Match the height of the dropdown */
+  background-color: #343a40; /* Bootstrap's dark gray */
+  color: #f8f9fa; /* Light gray for text to ensure good contrast */
+  border-left: 1px solid #23272b; /* A slightly darker shade for a subtle separator */
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s; /* Smooth transition for hover effect */
+}
+
+.tag-plus-button:hover,
+.tag-plus-button:focus {
+  background-color: #495057; /* A lighter gray for interaction feedback */
+  color: #ffffff; /* Keep text white for contrast */
+  outline: none; /* Prevent default focus outline to maintain the custom design */
 }
 </style>
