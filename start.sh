@@ -10,14 +10,15 @@ export RUNNING_IN_DOCKER=true
 docker build -t frontend-service ./frontend
 
 docker run -d \
-    -p 80:80 \
-    -e SITE=www.abhipobs.dev \
-    -e VIRTUAL_PORT=80 \
-    -e VIRTUAL_HOST=www.abhipobs.dev \
+    -p 8080:80 \
+    --restart unless-stopped \
+    -e SITE=abhipobs.dev \
+    -e VIRTUAL_PORT=80:8080 \
+    -e VIRTUAL_HOST=abhipobs.dev \
     -e VIRTUAL_PATH=/ \
+    --link api_service:api_service \
     --name frontend-service \
-    --network host \
-    -e LETSENCRYPT_HOST=www.abhipobs.dev \
+    -e LETSENCRYPT_HOST=abhipobs.dev \
     frontend-service
 
     # docker save frontend-service > frontend.tar  

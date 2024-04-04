@@ -3,66 +3,6 @@
     <nav class="navbar">
       <NavbarComponent />
     </nav>
-    <!--    &lt;!&ndash; Filters section &ndash;&gt;-->
-    <!--    <div class="filters">-->
-    <!--      <h2>Filters</h2>-->
-    <!--      <div class="top-row">-->
-    <!--        <label>-->
-    <!--          Start Date:-->
-    <!--          <input type="date" v-model="startDate" placeholder="Start Date" />-->
-    <!--        </label>-->
-    <!--        <label>-->
-    <!--          End Date:-->
-    <!--          <input type="date" v-model="endDate" placeholder="End Date" />-->
-    <!--        </label>-->
-    <!--        <label>-->
-    <!--          Chart Type:-->
-    <!--          <select v-model="chartType">-->
-    <!--            <option value="bar">Bar Chart</option>-->
-    <!--            <option value="line">Line Chart</option>-->
-    <!--          </select>-->
-    <!--        </label>-->
-    <!--      </div>-->
-    <!--      <div class="bottom-row">-->
-    <!--        <label>-->
-    <!--          Transaction Type:-->
-    <!--          <select v-model="transactionType">-->
-    <!--            <option value="EXPENDITURE">Expenses</option>-->
-    <!--            <option value="INCOME">Income</option>-->
-    <!--          </select>-->
-    <!--        </label>-->
-    <!--        <label>-->
-    <!--          Tag 1:-->
-    <!--          <select v-model="selectedTag1">-->
-    <!--            <option v-for="(value, key) in tags" :key="key" :value="key">-->
-    <!--              {{ key }}-->
-    <!--            </option>-->
-    <!--          </select>-->
-    <!--        </label>-->
-    <!--        <label>-->
-    <!--          Tag 2:-->
-    <!--          <select v-model="selectedTag2">-->
-    <!--            <option v-for="(value, key) in tags" :key="key" :value="key">-->
-    <!--              {{ key }}-->
-    <!--            </option>-->
-    <!--          </select>-->
-    <!--        </label>-->
-    <!--        <label>-->
-    <!--          Timeframe:-->
-    <!--          <select v-model="timeframe">-->
-    <!--            <option value="Day">Day</option>-->
-    <!--            <option value="Month">Month</option>-->
-    <!--            <option value="Year">Year</option>-->
-    <!--          </select>-->
-    <!--        </label>-->
-    <!--      </div>-->
-    <!--      <div class="third-row">-->
-    <!--        <button @click="toggleCompare">{{ compareText }}</button>-->
-    <!--        <button @click="createChart">Create</button>-->
-    <!--      </div>-->
-    <!--      &lt;!&ndash; Filters content... &ndash;&gt;-->
-    <!--    </div>-->
-
     <!-- Recurring data table -->
     <div class="container-history">
       <table class="recurring-table">
