@@ -23,73 +23,87 @@
 
     <!-- Content for the top half of the page, changes based on active tab -->
     <div v-if="activeTab === 'favorites'" class="top-half-content">
-      <button
-        v-for="favorite in favoritesData"
-        :key="favorite.id"
-        :class="{
-          'shortcut-button': true,
-          income: favorite.transactionType === 'INCOME',
-          expenditure: favorite.transactionType === 'EXPENDITURE',
-        }"
-        :style="{
-          backgroundImage: favorite.resourceURI
-            ? `url(${favorite.resourceURI})`
-            : '',
-        }"
-        @click="populateFormWithFavorite(favorite)"
-        style="position: relative"
-      >
-        {{ favorite.notes }}
-        <span
-          class="delete-cross"
-          @click.stop="deleteTransactionBlueprints(favorite.id, false)"
-          style="position: absolute; top: 0; right: 0; cursor: pointer"
-          >✕</span
+      <div v-if="favoritesData.length === 0" class="empty-state-message">
+        You have no favorites yet. Create a transaction and mark it as a
+        favorite to see it here.
+      </div>
+      <div v-else>
+        <button
+          v-for="favorite in favoritesData"
+          :key="favorite.id"
+          :class="{
+            'shortcut-button': true,
+            income: favorite.transactionType === 'INCOME',
+            expenditure: favorite.transactionType === 'EXPENDITURE',
+          }"
+          :style="{
+            backgroundImage: favorite.resourceURI
+              ? `url(${favorite.resourceURI})`
+              : '',
+          }"
+          @click="populateFormWithFavorite(favorite)"
+          style="position: relative"
         >
-      </button>
+          {{ favorite.notes }}
+          <span
+            class="delete-cross"
+            @click.stop="deleteTransactionBlueprints(favorite.id, false)"
+            style="position: absolute; top: 0; right: 0; cursor: pointer"
+            >✕</span
+          >
+        </button>
+      </div>
     </div>
 
     <div v-if="activeTab === 'viewRecurring'" class="top-half-content">
+      <div v-if="recurringData.length === 0" class="empty-state-message">
+        No recurring transactions found. You can create recurring transactions
+        to automate your financial tracking.
+      </div>
       <!-- Recurring data table -->
-      <table class="recurring-table">
-        <thead>
-          <tr>
-            <th>Notes</th>
-            <th>Transaction Type</th>
-            <th>Amount</th>
-            <th>Primary Tag</th>
-            <th>Secondary Tag</th>
-            <th>Date of Month Recurring</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="recurringData.length === 0">
-            <td colspan="7">No recurring transactions found.</td>
-          </tr>
-          <tr v-else v-for="item in recurringData" :key="item.id">
-            <td>{{ item.notes }}</td>
-            <td>{{ item.transactionType }}</td>
-            <td>{{ item.value.toFixed(2) }}</td>
-            <td>
-              <!-- Display primary tag name using the main tags array -->
-              {{ tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A" }}
-            </td>
-            <td>
-              {{ findSecondaryTagName(item.tagId2) }}
-            </td>
-            <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
-            <td>
-              <button
-                class="action-button delete"
-                @click.stop="deleteTransactionBlueprints(item.id, true)"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else>
+        <table class="recurring-table">
+          <thead>
+            <tr>
+              <th>Notes</th>
+              <th>Transaction Type</th>
+              <th>Amount</th>
+              <th>Primary Tag</th>
+              <th>Secondary Tag</th>
+              <th>Date of Month Recurring</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="recurringData.length === 0">
+              <td colspan="7">No recurring transactions found.</td>
+            </tr>
+            <tr v-else v-for="item in recurringData" :key="item.id">
+              <td>{{ item.notes }}</td>
+              <td>{{ item.transactionType }}</td>
+              <td>{{ item.value.toFixed(2) }}</td>
+              <td>
+                <!-- Display primary tag name using the main tags array -->
+                {{
+                  tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A"
+                }}
+              </td>
+              <td>
+                {{ findSecondaryTagName(item.tagId2) }}
+              </td>
+              <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
+              <td>
+                <button
+                  class="action-button delete"
+                  @click.stop="deleteTransactionBlueprints(item.id, true)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Form in the bottom half of the page -->
@@ -218,6 +232,7 @@
             v-model="form.notes"
             placeholder="Any relevant details"
             class="form-control"
+            required
           ></textarea>
         </div>
 
@@ -241,8 +256,8 @@ export default {
       tags: [], // Initialize tags from the imported JSON file
       secondaryTags: [], // Will be dynamically filled based on main category selection
       allSecondaryTags: [], //All secondary tags from the backend to make recurring table work
-      favoritesData: [], // Define the property here
-      recurringData: [], // Define the property here
+      favoritesData: [],
+      recurringData: [],
       form: {
         type: "",
         value: "",
@@ -418,8 +433,8 @@ export default {
       axios
         .get("/api/transaction-blueprints/get-transaction-blueprints/favorites")
         .then((response) => {
-          this.favoritesData = response.data.transactionBlueprintsList;
-          // Optionally, process the data if needed
+          this.favoritesData = response.data.transactionBlueprintsList || [];
+          console.log("Favorites data:", this.favoritesData);
         })
         .catch((error) => {
           console.error("Error fetching favorites:", error);
@@ -430,7 +445,7 @@ export default {
       axios
         .get("/api/transaction-blueprints/get-transaction-blueprints/recurring")
         .then((response) => {
-          this.recurringData = response.data.transactionBlueprintsList;
+          this.recurringData = response.data.transactionBlueprintsList || [];
         })
         .catch((error) => {
           console.error("Error fetching transaction blueprints:", error);
@@ -785,5 +800,11 @@ export default {
   background-color: #495057; /* A lighter gray for interaction feedback */
   color: #ffffff; /* Keep text white for contrast */
   outline: none; /* Prevent default focus outline to maintain the custom design */
+}
+
+.empty-state-message {
+  text-align: center;
+  padding: 20px;
+  margin: 20px 0;
 }
 </style>
