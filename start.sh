@@ -20,6 +20,7 @@ docker run -d \
     --name frontend-service \
     -e LETSENCRYPT_HOST=abhipobs.dev \
     frontend-service
+# TODO: Update application.properties
 
     # docker save frontend-service > frontend.tar  
     # scp -rp ./frontend.tar anish@139.59.231.241:~/home

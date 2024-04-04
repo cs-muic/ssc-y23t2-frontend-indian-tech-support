@@ -51,7 +51,13 @@
             </template>
             <template v-else>
               <td>{{ index + 1 }}</td>
-              <td><input v-model="item.type" /></td>
+              <td>
+                <select v-model="item.type" class="form-control" required>
+                  <option disabled value="">Select Type</option>
+                  <option value="INCOME">Income</option>
+                  <option value="EXPENDITURE">Expenditure</option>
+                </select>
+              </td>
               <td><input v-model="item.value" /></td>
               <td>
                 <select v-model="item.tagId">
