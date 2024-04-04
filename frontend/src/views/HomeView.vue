@@ -47,10 +47,9 @@
         </div>
 
         <!-- Categories with Biggest Expense Section -->
-        <!-- Categories with Biggest Expense Section -->
         <div class="categories-expense">
           <h2>Categories: Biggest Expenses</h2>
-          <div class="expense-items">
+          <div class="expense-items" v-if="topExpenditures.length > 0">
             <div
               class="expense-item"
               v-for="expense in topExpenditures"
@@ -62,6 +61,8 @@
               </div>
             </div>
           </div>
+          <!-- Message displayed when there are no biggest expenses -->
+          <div v-else class="no-data-message">Wow, you sure save a lot!</div>
         </div>
       </div>
 
@@ -87,6 +88,8 @@
             {{ favorite.notes }}
           </button>
         </div>
+        <!-- Message displayed when there are no favorites -->
+        <div v-else class="no-data-message">No shortcuts yet.</div>
       </aside>
     </div>
   </div>
@@ -119,8 +122,8 @@ export default {
       return "Good evening";
     },
   },
-  mounted() {
-    axios
+  async mounted() {
+    await axios
       .get("/api/whoami")
       .then((response) => {
         this.userName = response.data.displayName;
@@ -128,32 +131,31 @@ export default {
       .catch((error) => {
         console.error("Error fetching user info:", error.message);
       });
-    axios
+    await axios
       .get("/api/user/weekly-finance-summary")
       .then((response) => {
         const data = response.data;
         this.overviewItems = [
-          { title: "Expenses", value: data.totalExpenditure },
-          { title: "Balance", value: data.balance },
-          { title: "Revenues", value: data.totalIncome },
+          { title: "Expenses", value: data.totalExpenditure || 0 },
+          { title: "Balance", value: data.balance || 0 },
+          { title: "Revenues", value: data.totalIncome || 0 },
         ];
       })
       .catch((error) => {
         console.error("Error fetching financial summary:", error.message);
       });
-    axios
+    await axios
       .get("/api/user/top-expenditures")
       .then((response) => {
-        this.topExpenditures = response.data.data;
+        this.topExpenditures = response.data.data || [];
       })
       .catch((error) => {
         console.error("Error fetching top expenditures:", error.message);
       });
-    axios
+    await axios
       .get("/api/transaction-blueprints/get-transaction-blueprints/favorites")
       .then((response) => {
-        this.favoritesData = response.data.transactionBlueprintsList;
-        // Optionally, process the data if needed
+        this.favoritesData = response.data.transactionBlueprintsList || [];
       })
       .catch((error) => {
         console.error("Error fetching favorites:", error);
@@ -381,6 +383,12 @@ export default {
 
 .budgetTarget > * {
   transform: scale(1); /* Adjust as needed */
+}
+
+.no-data-message {
+  text-align: center;
+  color: #777; /* Grey text */
+  margin-top: 20px; /* Spacing from the title */
 }
 
 @keyframes fadeIn {
