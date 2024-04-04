@@ -232,26 +232,36 @@ export default {
       }
     },
     populateFormDate(dateString) {
-      // var dateUpdated = new Date(dateString);
-      var localeDate = this.convertDate(dateString).toLocaleDateString();
-      var localeTime = this.convertDate(dateString).toLocaleTimeString();
-      var dateUpdated = new Date(
-        dateUpdated + new Date(dateString)
-      ).toISOString();
-      console.log("dateString: " + localeDate + localeTime);
-      console.log("dateUpdated: " + dateUpdated);
-      // Extract date components
+      // Assuming convertDate properly converts dateString to a Date object
+      const dateObj = this.convertDate(dateString);
+
+      // Convert to locale-specific strings; this part seems fine if convertDate works as intended
+      var localeDate = dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      var localeTime = dateObj.toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      // Correctly log the date and time based on locale formatting
+      console.log("dateString: " + localeDate + " " + localeTime);
+
+      // Extract date components based on the assumption of 'MM/DD/YYYY' format; adjust if necessary
       const dateParts = localeDate.split("/");
       const year = dateParts[2];
       const month = dateParts[0];
       const day = dateParts[1];
-      this.form.date = year + "-" + month + "-" + day;
 
-      // Extract time components
-      const timeParts = localeTime.split(" ")[0].split(":");
-      const hour = timeParts[0];
-      const minute = timeParts[1];
-      this.form.time = hour + ":" + minute + ":00.000";
+      // Update form date in 'YYYY-MM-DD' format
+      this.form.date = `${year}-${month}-${day}`;
+
+      // Time string is already in 'HH:MM' format based on toLocaleTimeString settings
+      this.form.time = localeTime + ":00.000";
+
       console.log("form date: " + this.form.date);
       console.log("form time: " + this.form.time);
     },
@@ -285,21 +295,28 @@ export default {
       return new Date(timeStamp);
     },
     toggleEdit(index) {
-      const item = this.historyData[index];
-      if (!item.editing) {
-        // Fetch dynamic secondary tags when entering edit mode
-        this.fetchDynamicSecondaryTags(item.tagId).then(() => {
-          // Ensure the dynamicTags2 are loaded before switching to edit mode
-          this.$set(this.historyData[index], "editing", true);
-          // Pre-select current tags in editing mode
-          this.$nextTick(() => {
-            this.$set(this.historyData[index], "tagId", item.tagId);
-            this.$set(this.historyData[index], "tagId2", item.tagId2);
+      if (!this.globalEditing) {
+        const item = this.historyData[index];
+
+        if (!item.editing) {
+          // Begin editing
+          this.fetchDynamicSecondaryTags(item.tagId).then(() => {
+            // After fetching, update state to reflect editing mode and pre-select tags
+            this.$set(this.historyData[index], "editing", true);
+            this.$nextTick(() => {
+              // Additional actions to be taken immediately after setting editing state
+              // This is where you'd ensure any necessary updates are made, like setting up the form
+            });
           });
-        });
-        this.populateFormDate(item.timestamp);
+          // Assuming populateFormDate handles the timestamp correctly and formats the date as needed
+          this.populateFormDate(item.timestamp);
+        } else {
+          // Exiting edit mode, simply toggle the state without additional fetches
+          this.$set(this.historyData[index], "editing", false);
+        }
       } else {
-        // Exiting edit mode
+        // If global editing is enabled, disable it and turn off editing for the current item
+        this.globalEditing = false;
         this.$set(this.historyData[index], "editing", false);
       }
     },
