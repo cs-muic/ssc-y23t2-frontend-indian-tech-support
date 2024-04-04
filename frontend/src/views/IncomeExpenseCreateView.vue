@@ -42,7 +42,7 @@
         {{ favorite.notes }}
         <span
           class="delete-cross"
-          @click.stop="deleteFavorite(favorite.id)"
+          @click.stop="deleteTransactionBlueprints(favorite.id, false)"
           style="position: absolute; top: 0; right: 0; cursor: pointer"
           >✕</span
         >
@@ -81,14 +81,8 @@
             <td>{{ item.dateofMonthRecurring || "N/A" }}</td>
             <td>
               <button
-                class="action-button edit"
-                @click="editRecurringTransaction(item)"
-              >
-                Edit
-              </button>
-              <button
                 class="action-button delete"
-                @click="deleteRecurringTransaction(item.id)"
+                @click.stop="deleteTransactionBlueprints(item.id, true)"
               >
                 Delete
               </button>
@@ -386,18 +380,24 @@ export default {
         this.secondaryTags = []; // Reset secondary tags in case of error
       }
     },
-    async deleteFavorite(id) {
+    async deleteTransactionBlueprints(id, isRecurring = false) {
       try {
-        // Make the API call to delete the favorite by ID
         await axios.post("/api/transaction-blueprints/delete-favorite", null, {
           params: {
             id: id,
           },
         });
-        // Remove the deleted favorite from the favoritesData array
-        this.favoritesData = this.favoritesData.filter(
-          (favorite) => favorite.id !== id
-        );
+        if (isRecurring) {
+          // Remove the deleted recurring transaction from the recurringData array
+          this.recurringData = this.recurringData.filter(
+            (item) => item.id !== id
+          );
+        } else {
+          // Remove the deleted favorite from the favoritesData array
+          this.favoritesData = this.favoritesData.filter(
+            (favorite) => favorite.id !== id
+          );
+        }
       } catch (error) {
         console.error("Error deleting favorite:", error);
         alert("Failed to delete favorite.");
