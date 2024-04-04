@@ -84,8 +84,17 @@
               <td>{{ index + 1 }}</td>
               <td>{{ item.type }}</td>
               <td>{{ item.value }}</td>
-              <td>{{ getTagNameById(item.tagId) }}</td>
-              <td>{{ getTag2NameById(item.tagId2) }}</td>
+              <td>
+                {{
+                  tags.find((tag) => tag.id === item.tagId)?.tagName || "N/A"
+                }}
+              </td>
+              <td>
+                {{
+                  allSecondaryTags.find((tag) => tag.id === item.tagId2)
+                    ?.secondaryTagName || "N/A"
+                }}
+              </td>
               <td>{{ item.notes }}</td>
               <td>{{ convertDate(item.timestamp) }}</td>
               <td>
@@ -107,18 +116,18 @@
               <td>
                 <select v-model="item.tagId">
                   <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-                    {{ tag.name }}
+                    {{ tag.tagName }}
                   </option>
                 </select>
               </td>
               <td>
                 <select v-model="item.tagId2">
                   <option
-                    v-for="tag2 in dynamicTags2"
+                    v-for="tag2 in item.dynamicTags2"
                     :key="tag2.id"
                     :value="tag2.id"
                   >
-                    {{ tag2.name }}
+                    {{ tag2.secondaryTagName }}
                   </option>
                 </select>
               </td>
@@ -166,8 +175,6 @@
 <script>
 import axios from "axios";
 import NavbarComponent from "@/components/NavbarComponent.vue";
-import Tags from "@/assets/Tags.json";
-import Tags2 from "@/assets/Tags2.json";
 // eslint-disable-next-line no-unused-vars
 import { ref } from "vue";
 
@@ -194,18 +201,90 @@ export default {
     return {
       globalEditing: false,
       historyData: [],
-      tags: Tags,
-      tags2: Tags2,
+      tags: [],
+      tags2: [],
+      allSecondaryTags: [],
       form: {
         date: "0000-00-00", // Initialize with current date
         time: "00:00:00.000", // Initialize with current time
       },
     };
   },
-  mounted() {
+  async mounted() {
     this.fetchTransactionData();
+    await this.fetchPrimaryTags();
+    await this.fetchAllSecondaryTags();
+  },
+  computed: {
+    tagIds() {
+      return this.historyData.map((item) => item.tagId);
+    },
+  },
+  watch: {
+    tagIds: {
+      handler(newTagIds, oldTagIds) {
+        newTagIds.forEach((tagId, index) => {
+          if (tagId !== oldTagIds[index]) {
+            // If tagId has changed, fetch new secondary tags
+            this.fetchDynamicSecondaryTags(tagId, index);
+          }
+        });
+      },
+      deep: true, // This is necessary to watch inside arrays
+      immediate: true, // This runs the watcher immediately upon component creation
+    },
   },
   methods: {
+    async fetchPrimaryTags() {
+      try {
+        const response = await axios.get("/api/tag");
+        if (response.data.loggedIn) {
+          // Deduplicate tags based on 'id' or another unique property
+          const uniqueTags = Array.from(
+            new Map(response.data.tags.map((tag) => [tag.id, tag])).values()
+          );
+          this.tags = uniqueTags;
+        } else {
+          console.error("User not logged in");
+        }
+      } catch (error) {
+        console.error("Error fetching primary tags:", error);
+      }
+    },
+    async fetchAllSecondaryTags() {
+      try {
+        const response = await axios.get("/api/user-all-secondary-tags");
+        if (response.data.loggedIn) {
+          this.allSecondaryTags = response.data.secondaryTags;
+        } else {
+          console.error("User not logged in");
+        }
+      } catch (error) {
+        console.error("Error fetching all secondary tags:", error);
+      }
+    },
+    async fetchDynamicSecondaryTags(tagId, index) {
+      try {
+        const response = await axios.get("/api/secondary_tag", {
+          params: { tagId },
+        });
+        if (response.data.loggedIn) {
+          // Assume `dynamicTags2` is part of each `historyData` item
+          this.$set(
+            this.historyData[index],
+            "dynamicTags2",
+            response.data.secondaryTags
+          );
+        } else {
+          console.error("User not logged in");
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching secondary tags for tagId ${tagId}:`,
+          error
+        );
+      }
+    },
     populateFormDate(dateString) {
       // var dateUpdated = new Date(dateString);
       var localeDate = this.convertDate(dateString).toLocaleDateString();
@@ -260,26 +339,23 @@ export default {
       return new Date(timeStamp);
     },
     toggleEdit(index) {
-      if (!this.globalEditing) {
-        const item = this.historyData[index];
-        this.historyData[index].editing = !item.editing;
-        if (item.editing) {
-          // When we enter editing mode, update dynamic subcategories
-          this.updateDynamicSubcategories(item.tagId);
-          this.populateFormDate(item.timestamp);
-        }
+      const item = this.historyData[index];
+      if (!item.editing) {
+        // Fetch dynamic secondary tags when entering edit mode
+        this.fetchDynamicSecondaryTags(item.tagId).then(() => {
+          // Ensure the dynamicTags2 are loaded before switching to edit mode
+          this.$set(this.historyData[index], "editing", true);
+          // Pre-select current tags in editing mode
+          this.$nextTick(() => {
+            this.$set(this.historyData[index], "tagId", item.tagId);
+            this.$set(this.historyData[index], "tagId2", item.tagId2);
+          });
+        });
+        this.populateFormDate(item.timestamp);
       } else {
-        this.globalEditing = false;
-        this.historyData[index].editing = false;
+        // Exiting edit mode
+        this.$set(this.historyData[index], "editing", false);
       }
-    },
-    updateDynamicSubcategories(mainCategoryId) {
-      const startId = parseInt(mainCategoryId) * 3 - 2;
-      const endId = startId + 2;
-      this.dynamicTags2 = Tags2.filter((tag) => {
-        const tagId = parseInt(tag.id);
-        return tagId >= startId && tagId <= endId;
-      });
     },
     addLeadingZeroIfNeeded(str) {
       // Split the time string into hours, minutes, and seconds
@@ -368,16 +444,6 @@ export default {
           //handle error
           console.log(response);
         });
-    },
-    getTagNameById(tagId) {
-      const tagIdStr = String(tagId);
-      const tag = this.tags.find((tag) => tag.id === tagIdStr);
-      return tag ? tag.name : "-";
-    },
-    getTag2NameById(tagId2) {
-      const tagId2Str = String(tagId2);
-      const tag2 = this.tags2.find((tag) => tag.id === tagId2Str);
-      return tag2 ? tag2.name : "-";
     },
   },
 };
